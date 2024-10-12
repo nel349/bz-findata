@@ -8,7 +8,7 @@ updates:
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
-      interval: "mountly"
+      interval: "monthly"
       time: "08:00"
     labels:
       - "dependencies"

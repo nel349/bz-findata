@@ -11,8 +11,8 @@ services:
       LOGGER_LEVEL: debug
       # database
       DB_HOST: mysql:3306
-      DB_USER: test_mysql
-      DB_PASSWORD: a2s_kjlasjd
+      DB_USER: root
+      DB_PASSWORD: root
       DB_BASE: test
       # exchange
       EXCHANGE_URL: wss://ws-feed.exchange.coinbase.com
@@ -30,13 +30,13 @@ services:
   mysql:
     image: mysql
     environment:
-      MYSQL_USER: test_mysql
-      MYSQL_PASSWORD: a2s_kjlasjd
+      # MYSQL_USER: test_mysql
+      # MYSQL_PASSWORD: root
       MYSQL_DATABASE: test
       MYSQL_ROOT_HOST: '%'
-      MYSQL_ROOT_PASSWORD: s3dkfU_ALkj1
+      MYSQL_ROOT_PASSWORD: root
     restart: unless-stopped
-    command: --default-authentication-plugin=mysql_native_password
+    # command: --default-authentication-plugin=mysql_native_password
     ports:
       # Be careful! It's public port only for test. Remove this block if run in production.
       - "3306:3306"

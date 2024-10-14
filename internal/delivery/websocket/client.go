@@ -15,7 +15,6 @@ import (
 	"net"
 	"strings"
 	"sync"
-	"time"
 )
 
 type client struct {
@@ -76,12 +75,23 @@ func (c *client) Run(ctx context.Context) error {
 		c.logger.Error(err)
 		return err
 	}
-	switch result.Type {
-	case coinbase.Error:
-		c.logger.Fatal(fmt.Sprintf("%s:%s", result.Message, result.Reason))
-	case coinbase.Subscriptions:
+	switch r := result.(type) {
+	case *coinbase.Response:
+		if r.Type == coinbase.Error {
+			c.logger.Fatal(fmt.Sprintf("%s:%s", r.Message, r.Reason))
+		}
+	case *coinbase.TickerResponse:
 		c.logger.Info(fmt.Sprintf("started subscription on products [%s]", strings.Join(c.products, ",")))
+	
+	default:
+		c.logger.Error(fmt.Sprintf("unknown response type: %T", result))
 	}
+	// switch result.Type {
+	// case coinbase.Error:
+	// 	c.logger.Fatal(fmt.Sprintf("%s:%s", result.Message, result.Reason))
+	// case coinbase.Subscriptions:
+	// 	c.logger.Info(fmt.Sprintf("started subscription on products [%s]", strings.Join(c.products, ",")))
+	// }
 
 	// writers
 	for _, symbol := range c.products {
@@ -100,7 +110,7 @@ func (c *client) Run(ctx context.Context) error {
 // responseReader write to symbol channel from response socket data
 func (c *client) responseReader(symbol string, hMap map[string]chan entity.Ticker) error {
 	var mu = sync.Mutex{}
-	var tickData *coinbase.Response
+	// var tickData *coinbase.Response
 
 	for {
 		message, err := c.conn.ReadData()
@@ -112,27 +122,33 @@ func (c *client) responseReader(symbol string, hMap map[string]chan entity.Ticke
 			continue
 		}
 
-		tickData, err = coinbase.ParseResponse(message)
+		response, err := coinbase.ParseResponse(message)
 		if err != nil {
-			fmt.Println(string(message))
 			c.logger.Error(err)
 			continue
 		}
 
-		switch tickData.Type {
-		case coinbase.Error:
-			//TODO [critical] need break exchange and show global error?
-			c.logger.Error(err)
-			continue
-		case coinbase.Ticker:
-			mu.Lock()
-			hMap[symbol] <- entity.Ticker{
-				Timestamp: time.Now().UnixNano(), // for exclude collision and accuracy time of ticker
-				Bid:       tickData.BestBid,
-				Ask:       tickData.BestAsk,
-				Symbol:    tickData.ProductID,
+		switch r := response.(type) {
+		case *coinbase.TickerResponse:
+			ticker, err := r.ToTicker()
+			if err != nil {
+				c.logger.Error(err)
+				continue
 			}
+			mu.Lock()
+			hMap[symbol] <- *ticker
 			mu.Unlock()
+		// case *coinbase.ReceivedOrderResponse:
+		// 	order, err := r.ToReceivedOrder()
+		// 	if err != nil {
+		// 		c.logger.Error(err)
+		// 		continue
+		// 	}
+			// Handle received order (you might need to create a new channel for orders)
+		case *coinbase.Response:
+			if r.Type == coinbase.Error {
+				c.logger.Error(fmt.Errorf("API error: %s - %s", r.Message, r.Reason))
+			}
 		}
 	}
 

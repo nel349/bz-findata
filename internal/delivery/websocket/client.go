@@ -92,10 +92,9 @@ func (c *client) Run(ctx context.Context) error {
 	}
 
 	// Subscribe to heartbeats
-	_, err = c.conn.SubscribeToHeartbeats()
-	if err != nil {
-		return fmt.Errorf("failed to subscribe to heartbeats: %w", err)
-	}
+	c.conn.SubscribeToHeartbeats(ctx)
+
+
 	// writers
 	for _, symbol := range c.products {
 		g.Go(func() error {

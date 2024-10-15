@@ -1,8 +1,11 @@
 package coinbase
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	// "time"
+
 	"golang.org/x/net/websocket"
 )
 
@@ -43,7 +46,7 @@ func NewCoinbaseClient(url, protocol, origin string) (*client, error) {
 	return &client{conn, 0}, nil
 }
 
-func (c *client) SubscribeToHeartbeats() (interface{}, error) {
+func (c *client) SubscribeToHeartbeats(ctx context.Context) {
 
 	fmt.Println("Subscribing to heartbeats...")
 	subscribeMsg := SubscribeHeartbeat{
@@ -61,13 +64,17 @@ func (c *client) SubscribeToHeartbeats() (interface{}, error) {
 
 	subscribeBytes, err := json.Marshal(subscribeMsg)
 	if err != nil {
-		return nil, fmt.Errorf("error marshaling subscribe message: %w", err)
+		fmt.Println("error marshaling subscribe message: %w", err)
+		return
 	}
 
+	// Send initial subscription message
 	_, err = c.WriteData(subscribeBytes)
 	if err != nil {
-		return nil, fmt.Errorf("error writing subscribe message: %w", err)
+		fmt.Printf("error writing initial subscribe message: %v\n", err)
+		return
 	}
+
 	// Start a goroutine to handle incoming messages
 	go func() {
 		for {
@@ -88,16 +95,12 @@ func (c *client) SubscribeToHeartbeats() (interface{}, error) {
 			switch response.Type {
 			case Heartbeat.String():
 				fmt.Printf("Received heartbeat: %v\n", response)
-				fmt.Println("Subscription to heartbeat completed")
-				return
 			default:
 				fmt.Printf("Received unknown message type: %v\n", response.Type)
 
 			}
 		}
 	}()
-
-	return nil, nil
 }
 
 func (c *client) WriteData(message []byte) (int, error) {

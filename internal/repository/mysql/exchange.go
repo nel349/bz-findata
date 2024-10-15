@@ -16,14 +16,14 @@ func NewExchangeRepository(db *sqlx.DB) *exchangeRepo {
 	return &exchangeRepo{db}
 }
 
-func (e *exchangeRepo) CreateTick(ctx context.Context, ticker entity.Ticker) error {
+func (e *exchangeRepo) CreateTick(ctx context.Context, message entity.Message) error {
 	ctxReq, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
 	if _, err := e.db.NamedExecContext(
 		ctxReq,
 		"INSERT INTO ticks (symbol, timestamp, bid, ask) VALUES (:symbol, :timestamp, :bid, :ask)",
-		ticker,
+		message.Ticker,
 	); err != nil {
 		return err
 	}

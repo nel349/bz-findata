@@ -21,7 +21,7 @@ func NewExchangeService(
 	return &exchangeService{exchange, logger}
 }
 
-func (e *exchangeService) Tick(ctx context.Context, ch <-chan entity.Ticker) error {
+func (e *exchangeService) Tick(ctx context.Context, ch <-chan entity.Message) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -33,7 +33,7 @@ func (e *exchangeService) Tick(ctx context.Context, ch <-chan entity.Ticker) err
 					return err
 				}
 
-				e.logger.Info(fmt.Sprintf("writed ticker %s > time:%d, bid:%f, ask:%f", v.Symbol, v.Timestamp, v.Bid, v.Ask))
+				e.logger.Info(fmt.Sprintf("writed ticker %s > time:%d, bid:%f, ask:%f", v.Ticker.Symbol, v.Ticker.Timestamp, v.Ticker.Bid, v.Ticker.Ask))
 			} else {
 				return nil
 			}

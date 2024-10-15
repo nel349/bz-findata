@@ -44,10 +44,13 @@ func NewSocketClient(conn exchange.Manager, uc *usecase.Services, logger logger.
 func (c *client) Run(ctx context.Context) error {
 
 	var g = errgroup.Group{}
-	var hMap = make(map[string]chan entity.Ticker)
+	var hMap = make(map[string]chan entity.Message)
 
 	for _, symbol := range c.products {
-		hMap[symbol] = make(chan entity.Ticker)
+		hMap[symbol] = make(chan entity.Message)
+
+		// we should use different channels for ticker and order then merge them later
+		
 		// run readers
 		g.Go(func() error {
 			return c.uc.Exchange.Tick(ctx, hMap[symbol])
@@ -108,7 +111,7 @@ func (c *client) Run(ctx context.Context) error {
 }
 
 // responseReader write to symbol channel from response socket data
-func (c *client) responseReader(symbol string, hMap map[string]chan entity.Ticker) error {
+func (c *client) responseReader(symbol string, hMap map[string]chan entity.Message) error {
 	var mu = sync.Mutex{}
 	// var tickData *coinbase.Response
 
@@ -136,14 +139,17 @@ func (c *client) responseReader(symbol string, hMap map[string]chan entity.Ticke
 				continue
 			}
 			mu.Lock()
-			hMap[symbol] <- *ticker
+			hMap[symbol] <- entity.Message{Ticker: ticker}
 			mu.Unlock()
-		// case *coinbase.ReceivedOrderResponse:
-		// 	order, err := r.ToReceivedOrder()
-		// 	if err != nil {
-		// 		c.logger.Error(err)
-		// 		continue
-		// 	}
+		case *coinbase.ReceivedOrderResponse:
+			order, err := r.ToReceivedOrder()
+			if err != nil {
+				c.logger.Error(err)
+				continue
+			}
+			mu.Lock()
+			hMap[symbol] <- entity.Message{Order: order}
+			mu.Unlock()
 			// Handle received order (you might need to create a new channel for orders)
 		case *coinbase.Response:
 			if r.Type == coinbase.Error {

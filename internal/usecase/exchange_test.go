@@ -37,7 +37,7 @@ func Test_exchangeService_Tick(t *testing.T) {
 	}
 	type args struct {
 		ctx context.Context
-		ch  <-chan entity.Ticker
+		ch  <-chan entity.Message
 	}
 	tests := []struct {
 		name    string

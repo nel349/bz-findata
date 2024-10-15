@@ -10,7 +10,7 @@ import (
 // Exchange usecase
 type Exchange interface {
 	// Tick exchange tick data of stream
-	Tick(ctx context.Context, ch <-chan entity.Ticker) error
+	Tick(ctx context.Context, ch <-chan entity.Message) error
 }
 
 // Services struct of usecase layout

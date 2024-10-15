@@ -10,7 +10,7 @@ import (
 // Exchange methods implementation
 type Exchange interface {
 	// CreateTick write in storage ticker data
-	CreateTick(ctx context.Context, ticker entity.Ticker) error
+	CreateTick(ctx context.Context, message entity.Message) error
 }
 
 // Repositories of based interface for repository layout

@@ -27,12 +27,15 @@ type TickerResponse struct {
 // ReceivedOrderResponse for received order data
 type ReceivedOrderResponse struct {
 	Response
-	OrderID    string `json:"order_id"`
-	OrderType  string `json:"order_type"`
-	Size       string `json:"size"`
-	Price      string `json:"price"`
-	ClientOID  string `json:"client_oid"`
-	// Add other fields specific to received orders
+	Time       string  `json:"time"`
+	Sequence   int64   `json:"sequence"`
+	OrderID    string  `json:"order_id"`
+	Size       float64  `json:"size,omitempty"`  // Only for limit orders
+	Price      float64  `json:"price,omitempty"` // Only for limit orders
+	Funds      float64  `json:"funds,omitempty"` // Only for market orders
+	Side       string  `json:"side"`
+	OrderType  string  `json:"order_type"`
+	ClientOID  string  `json:"client-oid"` // Note the hyphen in the JSON tag
 }
 
 type ResponseType int
@@ -69,6 +72,18 @@ func (r *TickerResponse) ToTicker() (*entity.Ticker, error) {
 		Bid:       bid,
 		Ask:       ask,
 		Symbol:    r.ProductID,
+	}, nil
+}
+
+func (r *ReceivedOrderResponse) ToReceivedOrder() (*entity.Order, error) {
+	return &entity.Order{
+		OrderID:   r.OrderID,
+		OrderType: r.OrderType,
+		Funds:     r.Funds,
+		Side:      r.Side,
+		ClientOID: r.ClientOID,
+		ProductID: r.ProductID,
+		// Set other fields as needed
 	}, nil
 }
 

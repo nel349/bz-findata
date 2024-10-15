@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"time"
 	"github.com/dmitryburov/go-coinbase-socket/internal/entity"
 	"github.com/dmitryburov/go-coinbase-socket/internal/repository"
 	"github.com/dmitryburov/go-coinbase-socket/pkg/logger"
@@ -22,21 +23,37 @@ func NewExchangeService(
 }
 
 func (e *exchangeService) Tick(ctx context.Context, ch <-chan entity.Message) error {
+
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
-			return nil
-		case v, ok := <-ch:
-			if ok {
-				if err := e.exchange.CreateTick(ctx, v); err != nil {
-					//TODO [critical] block - what's need?
-					return err
-				}
-
-				e.logger.Info(fmt.Sprintf("writed ticker %s > time:%d, bid:%f, ask:%f", v.Ticker.Symbol, v.Ticker.Timestamp, v.Ticker.Bid, v.Ticker.Ask))
-			} else {
+			e.logger.Info("Context cancelled, exiting Tick")
+			return ctx.Err()
+		case msg, ok := <-ch:
+			if !ok {
+				e.logger.Info("Channel closed, exiting Tick")
 				return nil
 			}
+
+			if err := e.exchange.CreateTick(ctx, msg); err != nil {
+				//TODO [critical] block - what's need?
+				return err
+			}
+
+			e.logger.Info(
+				fmt.Sprintf(
+					"writed ticker %s > time:%d, bid:%f, ask:%f",
+					msg.Ticker.Symbol,
+					msg.Ticker.Timestamp,
+					msg.Ticker.Bid,
+					msg.Ticker.Ask,
+				),
+			)
+		case <-ticker.C:
+			e.logger.Info("Still alive, waiting for data")
 		}
+
 	}
 }

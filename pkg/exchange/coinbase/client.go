@@ -1,6 +1,7 @@
 package coinbase
 
 import (
+	"encoding/json"
 	"fmt"
 	"golang.org/x/net/websocket"
 )
@@ -15,8 +16,17 @@ type Subscribe struct {
 	Channels   []string `json:"channels"`
 }
 
+type SubscribeHeartbeat struct {
+	Type     string `json:"type"`
+	Channels []struct {
+		Name       string   `json:"name"`
+		ProductIDs []string `json:"product_ids"`
+	} `json:"channels"`
+}
+
 type client struct {
 	*websocket.Conn
+	heartbeatCounter int64
 }
 
 // NewCoinbaseClient init client for Coinbase
@@ -30,7 +40,64 @@ func NewCoinbaseClient(url, protocol, origin string) (*client, error) {
 		return nil, err
 	}
 
-	return &client{conn}, nil
+	return &client{conn, 0}, nil
+}
+
+func (c *client) SubscribeToHeartbeats() (interface{}, error) {
+
+	fmt.Println("Subscribing to heartbeats...")
+	subscribeMsg := SubscribeHeartbeat{
+		Type: "subscribe",
+		Channels: []struct {
+			Name       string   `json:"name"`
+			ProductIDs []string `json:"product_ids"`
+		}{
+			{
+				Name:       "heartbeat",
+				ProductIDs: []string{"ETH-BTC"},
+			},
+		},
+	}
+
+	subscribeBytes, err := json.Marshal(subscribeMsg)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling subscribe message: %w", err)
+	}
+
+	_, err = c.WriteData(subscribeBytes)
+	if err != nil {
+		return nil, fmt.Errorf("error writing subscribe message: %w", err)
+	}
+	// Start a goroutine to handle incoming messages
+	go func() {
+		for {
+			message, err := c.ReadData()
+			if err != nil {
+				fmt.Printf("Error reading data: %v\n", err)
+				continue
+			}
+
+			fmt.Println("Received message:", string(message))
+
+			var response HeartbeatResponse
+			if err := json.Unmarshal(message, &response); err != nil {
+				fmt.Printf("Error unmarshaling response: %v\n", err)
+				continue
+			}
+
+			switch response.Type {
+			case Heartbeat.String():
+				fmt.Printf("Received heartbeat: %v\n", response)
+				fmt.Println("Subscription to heartbeat completed")
+				return
+			default:
+				fmt.Printf("Received unknown message type: %v\n", response.Type)
+
+			}
+		}
+	}()
+
+	return nil, nil
 }
 
 func (c *client) WriteData(message []byte) (int, error) {

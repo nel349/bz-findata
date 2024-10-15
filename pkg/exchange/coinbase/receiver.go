@@ -38,6 +38,13 @@ type ReceivedOrderResponse struct {
 	ClientOID  string  `json:"client-oid"` // Note the hyphen in the JSON tag
 }
 
+type HeartbeatResponse struct {
+    Type        string    `json:"type"`
+    Sequence    int64     `json:"sequence"`
+    LastTradeID int64     `json:"last_trade_id"`
+    ProductID   string    `json:"product_id"`
+    Time        time.Time `json:"time"`
+}
 type ResponseType int
 
 const (
@@ -112,6 +119,14 @@ func ParseResponse(message []byte) (interface{}, error) {
 			return nil, err
 		}
 		return &tickerResponse, nil
+
+	case Heartbeat:
+		var heartbeatResponse HeartbeatResponse
+		if err := json.Unmarshal(message, &heartbeatResponse); err != nil {
+			return nil, err
+		}
+		return &heartbeatResponse, nil
+
 	// case ReceivedOrder:
 	// 	var orderResponse ReceivedOrderResponse
 	// 	if err := json.Unmarshal(message, &orderResponse); err != nil {

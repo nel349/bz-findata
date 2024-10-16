@@ -17,14 +17,16 @@ services:
       EXCHANGE_URL: wss://ws-feed.exchange.coinbase.com
       EXCHANGE_ORIGIN: https://coinbase.com
       EXCHANGE_PROTOCOL:
-      EXCHANGE_SYMBOLS: ETH-BTC,BTC-USD,BTC-EUR
-      EXCHANGE_CHANNELS: ticker
+      EXCHANGE_SYMBOLS: ETH-USD
+      EXCHANGE_CHANNELS: full
     restart: unless-stopped
     depends_on:
       mysql:
         condition: service_healthy
     networks:
       - local
+    env_file:
+      - env.list
 
   mysql:
     image: mysql

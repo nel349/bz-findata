@@ -8,7 +8,7 @@ help: ## Show this help
 	@grep -h -E '^[a-zA-Z_-].+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 compose.run: ## Start with docker-compose
-	docker-compose up --build
+	docker-compose --env-file env.list up --build
 
 compose.stop: ## Stop docker-compose
 	docker-compose down
@@ -44,7 +44,7 @@ export DB_BASE=test
 export EXCHANGE_URL=wss://ws-feed.exchange.coinbase.com
 export EXCHANGE_ORIGIN=https://coinbase.com
 export EXCHANGE_PROTOCOL=
-export EXCHANGE_SYMBOLS=ETH-BTC,BTC-USD,BTC-EUR
+export EXCHANGE_SYMBOLS=ETH-BTC
 export EXCHANGE_CHANNELS=ticker
 
 run: ## Run application local

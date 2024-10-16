@@ -57,13 +57,25 @@ func (c *client) Run(ctx context.Context) error {
 		})
 	}
 
+	auth := coinbase.NewAuth()
+	signature, timestamp, err := auth.GenerateSignature()
+	if err != nil {
+		c.logger.Error("error generate signature: ", err)
+		return err
+	}
 	// subscribe to products
 	sData, _ := json.Marshal(map[string]interface{}{
 		"type":        "subscribe",
 		"product_ids": c.products,
 		"channels":    c.channels,
+		"signature":   signature,
+		"timestamp":   timestamp,
+		"key":         auth.Key,
+		"passphrase":  auth.Passphrase,
 	})
-	_, err := c.conn.WriteData(sData)
+
+
+	_, err = c.conn.WriteData(sData)
 	if err != nil {
 		c.logger.Error(err)
 		return err

@@ -44,7 +44,7 @@ func (e *exchangeService) Tick(ctx context.Context, ch <-chan entity.Message) er
 
 			e.logger.Info(
 				fmt.Sprintf(
-					"writed ticker %s > time:%d, bid:%f, ask:%f",
+					"Inserted ticker %s > time:%d, bid:%f, ask:%f",
 					msg.Ticker.Symbol,
 					msg.Ticker.Timestamp,
 					msg.Ticker.Bid,

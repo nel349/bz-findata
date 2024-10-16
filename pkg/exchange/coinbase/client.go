@@ -84,7 +84,7 @@ func (c *client) SubscribeToHeartbeats(ctx context.Context) {
 				continue
 			}
 
-			fmt.Println("Received message:", string(message))
+			// fmt.Println("Received message:", string(message))
 
 			var response HeartbeatResponse
 			if err := json.Unmarshal(message, &response); err != nil {
@@ -96,7 +96,7 @@ func (c *client) SubscribeToHeartbeats(ctx context.Context) {
 			case Heartbeat.String():
 				fmt.Printf("Received heartbeat: %v\n", response)
 			default:
-				fmt.Printf("Received unknown message type: %v\n", response.Type)
+				// fmt.Printf("Received unknown message type: %v\n", response.Type)
 
 			}
 		}

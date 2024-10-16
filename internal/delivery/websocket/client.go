@@ -65,6 +65,7 @@ func (c *client) Run(ctx context.Context) error {
 	})
 	_, err := c.conn.WriteData(sData)
 	if err != nil {
+		c.logger.Error(err)
 		return err
 	}
 

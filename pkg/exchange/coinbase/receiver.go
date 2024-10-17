@@ -153,6 +153,16 @@ func (r *ResponseType) UnmarshalJSON(v []byte) error {
 	return fmt.Errorf("invalid locality type %q", str)
 }
 
+func (r *HeartbeatResponse) ToHeartbeat() (*entity.Heartbeat, error) {
+	return &entity.Heartbeat{
+		Type:        r.Type,
+		Sequence:    r.Sequence,
+		LastTradeID: r.LastTradeID,
+		ProductID:   r.ProductID,
+		Time:        r.Time,
+	}, nil
+}
+
 func ParseResponse(message []byte) (interface{}, error) {
 
 	var baseResponse Response

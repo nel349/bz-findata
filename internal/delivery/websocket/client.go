@@ -178,6 +178,15 @@ func (c *client) responseReader(symbol string, hMap map[string]chan entity.Messa
                 mu.Lock()
                 hMap[symbol] <- entity.Message{Order: order}
                 mu.Unlock()
+			case *coinbase.HeartbeatResponse:
+				heartbeat, err := r.ToHeartbeat()
+				if err != nil {
+					c.logger.Error(err)
+					continue
+				}
+				mu.Lock()
+				hMap[symbol] <- entity.Message{Heartbeat: heartbeat}
+				mu.Unlock()
             case *coinbase.Response:
                 if r.Type == coinbase.Error.String() {
                     c.logger.Error(fmt.Errorf("API error: %s - %s", r.Message, r.Reason))

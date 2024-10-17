@@ -28,14 +28,14 @@ type TickerResponse struct {
 type OrderResponse struct {
 	Response
 	Time      time.Time `json:"time"`
-	Sequence  int64  `json:"sequence"`
-	OrderID   string `json:"order_id"`
-	Size      string `json:"size,omitempty"`  // Only for limit orders
-	Price     string `json:"price,omitempty"` // Only for limit orders
-	Funds     string `json:"funds,omitempty"` // Only for market orders
-	Side      string `json:"side"`
-	OrderType string `json:"order_type"`
-	ClientOID string `json:"client-oid"` // Note the hyphen in the JSON tag
+	Sequence  int       `json:"sequence"`
+	OrderID   string    `json:"order_id"`
+	Size      string    `json:"size,omitempty"`  // Only for limit orders
+	Price     string    `json:"price,omitempty"` // Only for limit orders
+	Funds     string    `json:"funds,omitempty"` // Only for market orders
+	Side      string    `json:"side"`
+	OrderType string    `json:"order_type"`
+	ClientOID string    `json:"client-oid"` // Note the hyphen in the JSON tag
 }
 
 type HeartbeatResponse struct {
@@ -102,29 +102,29 @@ func (r *TickerResponse) ToTicker() (*entity.Ticker, error) {
 // Update the ToOrderResponse method to handle string conversions
 func (r *OrderResponse) ToOrderResponse() (*entity.Order, error) {
 
-    var size, price, funds float64
-    var err error
+	var size, price, funds float64
+	var err error
 
-    if r.Size != "" {
-        size, err = strconv.ParseFloat(r.Size, 64)
-        if err != nil {
-            return nil, fmt.Errorf("invalid size: %w", err)
-        }
-    }
+	if r.Size != "" {
+		size, err = strconv.ParseFloat(r.Size, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid size: %w", err)
+		}
+	}
 
-    if r.Price != "" {
-        price, err = strconv.ParseFloat(r.Price, 64)
-        if err != nil {
-            return nil, fmt.Errorf("invalid price: %w", err)
-        }
-    }
+	if r.Price != "" {
+		price, err = strconv.ParseFloat(r.Price, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid price: %w", err)
+		}
+	}
 
-    if r.Funds != "" {
-        funds, err = strconv.ParseFloat(r.Funds, 64)
-        if err != nil {
-            return nil, fmt.Errorf("invalid funds: %w", err)
-        }
-    }
+	if r.Funds != "" {
+		funds, err = strconv.ParseFloat(r.Funds, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid funds: %w", err)
+		}
+	}
 
 	return &entity.Order{
 		Type:      r.Type,
@@ -137,6 +137,7 @@ func (r *OrderResponse) ToOrderResponse() (*entity.Order, error) {
 		Side:      r.Side,
 		ClientOID: r.ClientOID,
 		ProductID: r.ProductID,
+		Sequence:  r.Sequence,
 		// Set other fields as needed
 	}, nil
 }

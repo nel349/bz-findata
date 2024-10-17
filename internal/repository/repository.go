@@ -11,6 +11,8 @@ import (
 type Exchange interface {
 	// CreateTick write in storage ticker data
 	CreateTick(ctx context.Context, message entity.Message) error
+	// CreateOrder write in storage order data
+	CreateOrder(ctx context.Context, message entity.Message) error
 }
 
 // Repositories of based interface for repository layout

@@ -55,7 +55,18 @@ func (e *exchangeService) ProcessStream(ctx context.Context, ch <-chan entity.Me
 				)
 
 			case msg.Order != nil:
-				e.logger.Info(fmt.Sprintf("Received order in : %+v", msg.Order))
+				e.logger.Info(fmt.Sprintf("Received order: %+v", msg.Order))
+				if err := e.exchange.CreateOrder(ctx, msg); err != nil {
+					return err
+				}
+				e.logger.Info(
+					fmt.Sprintf(
+						"Inserted order %s > time:%d, type:%s",
+						msg.Order.ProductID,
+						msg.Order.Timestamp,
+						msg.Order.Type,
+					),
+				)
 			case msg.Heartbeat != nil:
 				e.logger.Info(fmt.Sprintf("Received heartbeat in : %+v", msg.Heartbeat))
 			default:

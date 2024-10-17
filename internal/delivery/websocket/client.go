@@ -94,10 +94,10 @@ func (c *client) Run(ctx context.Context) error {
 
 	switch v := result.(type) {
 	case *coinbase.Response:
-		if v.Type == coinbase.Error {
+		if v.Type == coinbase.Error.String() {
 			c.logger.Fatal(fmt.Sprintf("Error: %s:%s", v.Message, v.Reason))
 		}
-		if v.Type == coinbase.Subscriptions {
+		if v.Type == coinbase.Subscriptions.String() {
 			c.logger.Info(fmt.Sprintf("started subscription on products [%s]", strings.Join(c.products, ",")))
 		}
 	default:
@@ -164,7 +164,7 @@ func (c *client) responseReader(symbol string, hMap map[string]chan entity.Messa
 			mu.Unlock()
 			// Handle received order (you might need to create a new channel for orders)
 		case *coinbase.Response:
-			if r.Type == coinbase.Error {
+			if r.Type == coinbase.Error.String() {
 				c.logger.Error(fmt.Errorf("API error: %s - %s", r.Message, r.Reason))
 			}
 		}

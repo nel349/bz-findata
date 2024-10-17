@@ -7,6 +7,8 @@ type Order struct {
 	OrderID   string
 	Funds     float64
 	Side      string
+	Size      float64
+	Price     float64
 	OrderType string
 	ClientOID string
 }

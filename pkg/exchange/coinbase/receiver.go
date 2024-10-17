@@ -11,7 +11,7 @@ import (
 
 // Base Response struct
 type Response struct {
-	Type      ResponseType `json:"type,string"`
+	Type      string       `json:"type"`
 	Message   string       `json:"message,omitempty"`
 	Reason    string       `json:"reason,omitempty"`
 	ProductID string       `json:"product_id"`
@@ -27,23 +27,23 @@ type TickerResponse struct {
 // ReceivedOrderResponse for received order data
 type ReceivedOrderResponse struct {
 	Response
-	Time       string  `json:"time"`
-	Sequence   int64   `json:"sequence"`
-	OrderID    string  `json:"order_id"`
-	Size       float64  `json:"size,omitempty"`  // Only for limit orders
-	Price      float64  `json:"price,omitempty"` // Only for limit orders
-	Funds      float64  `json:"funds,omitempty"` // Only for market orders
-	Side       string  `json:"side"`
-	OrderType  string  `json:"order_type"`
-	ClientOID  string  `json:"client-oid"` // Note the hyphen in the JSON tag
+	Time      string  `json:"time"`
+	Sequence  int64   `json:"sequence"`
+	OrderID   string  `json:"order_id"`
+	Size      string  `json:"size,omitempty"`  // Only for limit orders
+	Price     string  `json:"price,omitempty"` // Only for limit orders
+	Funds     string  `json:"funds,omitempty"` // Only for market orders
+	Side      string  `json:"side"`
+	OrderType string  `json:"order_type"`
+	ClientOID string  `json:"client-oid"` // Note the hyphen in the JSON tag
 }
 
 type HeartbeatResponse struct {
-    Type        string    `json:"type"`
-    Sequence    int64     `json:"sequence"`
-    LastTradeID int64     `json:"last_trade_id"`
-    ProductID   string    `json:"product_id"`
-    Time        time.Time `json:"time"`
+	Type        string    `json:"type"`
+	Sequence    int64     `json:"sequence"`
+	LastTradeID int64     `json:"last_trade_id"`
+	ProductID   string    `json:"product_id"`
+	Time        time.Time `json:"time"`
 }
 type ResponseType int
 
@@ -54,9 +54,10 @@ const (
 	Heartbeat
 	Ticker
 	Level2
+	Received
 )
 
-var responseTypeNames = [...]string{"error", "subscriptions", "unsubscribe", "heartbeat", "ticker", "level2"}
+var responseTypeNames = [...]string{"error", "subscriptions", "unsubscribe", "heartbeat", "ticker", "level2", "received"}
 
 func (r ResponseType) String() string {
 	return responseTypeNames[r]
@@ -82,11 +83,29 @@ func (r *TickerResponse) ToTicker() (*entity.Ticker, error) {
 	}, nil
 }
 
+// Update the ToReceivedOrder method to handle string conversions
 func (r *ReceivedOrderResponse) ToReceivedOrder() (*entity.Order, error) {
+	size, err := strconv.ParseFloat(r.Size, 64)
+	if err != nil {
+		return nil, fmt.Errorf("invalid size: %w", err)
+	}
+
+	price, err := strconv.ParseFloat(r.Price, 64)
+	if err != nil {
+		return nil, fmt.Errorf("invalid price: %w", err)
+	}
+
+	funds, err := strconv.ParseFloat(r.Funds, 64)
+	if err != nil && r.Funds != "" {
+		return nil, fmt.Errorf("invalid funds: %w", err)
+	}
+
 	return &entity.Order{
 		OrderID:   r.OrderID,
 		OrderType: r.OrderType,
-		Funds:     r.Funds,
+		Size:      size,
+		Price:     price,
+		Funds:     funds,
 		Side:      r.Side,
 		ClientOID: r.ClientOID,
 		ProductID: r.ProductID,
@@ -107,34 +126,37 @@ func (r *ResponseType) UnmarshalJSON(v []byte) error {
 }
 
 func ParseResponse(message []byte) (interface{}, error) {
+
 	var baseResponse Response
 	if err := json.Unmarshal(message, &baseResponse); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal message: %w", err)
 	}
 
 	switch baseResponse.Type {
-	case Ticker:
+	case Ticker.String():
 		var tickerResponse TickerResponse
 		if err := json.Unmarshal(message, &tickerResponse); err != nil {
 			return nil, err
 		}
 		return &tickerResponse, nil
 
-	case Heartbeat:
+	case Heartbeat.String():
 		var heartbeatResponse HeartbeatResponse
 		if err := json.Unmarshal(message, &heartbeatResponse); err != nil {
 			return nil, err
 		}
 		return &heartbeatResponse, nil
 
-	// case ReceivedOrder:
-	// 	var orderResponse ReceivedOrderResponse
-	// 	if err := json.Unmarshal(message, &orderResponse); err != nil {
-	// 		return nil, err
-	// 	}
-	// 	return &orderResponse, nil
+	case Received.String():
+		fmt.Printf("Message: %s\n", message)
+		var orderResponse ReceivedOrderResponse
+		if err := json.Unmarshal(message, &orderResponse); err != nil {
+			return nil, err
+		}
+		return &orderResponse, nil
 	// Add other cases as needed
 	default:
+		fmt.Printf("Unknown response type: %s and pr", baseResponse.Type)
 		return &baseResponse, nil
 	}
 }

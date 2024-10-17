@@ -2,9 +2,11 @@ package mysql
 
 import (
 	"context"
+	"fmt"
+	"time"
+
 	"github.com/dmitryburov/go-coinbase-socket/internal/entity"
 	"github.com/jmoiron/sqlx"
-	"time"
 )
 
 type exchangeRepo struct {
@@ -20,13 +22,19 @@ func (e *exchangeRepo) CreateTick(ctx context.Context, message entity.Message) e
 	ctxReq, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
-	if _, err := e.db.NamedExecContext(
-		ctxReq,
-		"INSERT INTO ticks (symbol, timestamp, bid, ask) VALUES (:symbol, :timestamp, :bid, :ask)",
-		message.Ticker,
-	); err != nil {
+	if message.Ticker != nil {
+		_, err := e.db.NamedExecContext(
+			ctxReq,
+			"INSERT INTO ticks (symbol, timestamp, bid, ask) VALUES (:symbol, :timestamp, :bid, :ask)",
+			message.Ticker,
+		)
 		return err
+	} else if message.Order != nil {
+		// Handle order data if needed
+		// For now, we'll just log that we received an order
+		fmt.Printf("Received order: %+v", message.Order)
+		return nil
 	}
 
-	return nil
+	return fmt.Errorf("message contains neither ticker nor order data")
 }

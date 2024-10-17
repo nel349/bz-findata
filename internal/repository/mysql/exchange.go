@@ -38,3 +38,18 @@ func (e *exchangeRepo) CreateTick(ctx context.Context, message entity.Message) e
 
 	return fmt.Errorf("message contains neither ticker nor order data")
 }
+
+func (e *exchangeRepo) CreateOrder(ctx context.Context, message entity.Message) error {
+	ctxReq, cancel := context.WithTimeout(ctx, 1*time.Second)
+	defer cancel()
+
+	if message.Order != nil {
+		_, err := e.db.NamedExecContext(
+			ctxReq,
+			"INSERT INTO orders (symbol, timestamp, bid, ask) VALUES (:symbol, :timestamp, :bid, :ask)",
+			message.Order)
+		return err
+	}
+
+	return fmt.Errorf("message contains neither ticker nor order data")
+}

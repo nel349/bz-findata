@@ -9,8 +9,8 @@ import (
 
 // Exchange usecase
 type Exchange interface {
-	// Tick exchange tick data of stream
-	Tick(ctx context.Context, ch <-chan entity.Message) error
+	// ProcessStream handles the stream of exchange data
+	ProcessStream(ctx context.Context, ch <-chan entity.Message) error
 }
 
 // Services struct of usecase layout

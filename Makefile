@@ -44,7 +44,7 @@ export DB_BASE=test
 export EXCHANGE_URL=wss://ws-feed.exchange.coinbase.com
 export EXCHANGE_ORIGIN=https://coinbase.com
 export EXCHANGE_PROTOCOL=
-export EXCHANGE_SYMBOLS=ETH-BTC
+export EXCHANGE_SYMBOLS=ETH-BTC,BTC-USD,BTC-EUR
 export EXCHANGE_CHANNELS=ticker
 
 run: ## Run application local

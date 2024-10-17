@@ -22,7 +22,7 @@ func NewExchangeService(
 	return &exchangeService{exchange, logger}
 }
 
-func (e *exchangeService) Tick(ctx context.Context, ch <-chan entity.Message) error {
+func (e *exchangeService) ProcessStream(ctx context.Context, ch <-chan entity.Message) error {
 
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
@@ -56,6 +56,8 @@ func (e *exchangeService) Tick(ctx context.Context, ch <-chan entity.Message) er
 
 			case msg.Order != nil:
 				e.logger.Info(fmt.Sprintf("Received order in : %+v", msg.Order))
+			case msg.Heartbeat != nil:
+				e.logger.Info(fmt.Sprintf("Received heartbeat in : %+v", msg.Heartbeat))
 			default:
 				e.logger.Info("Unknown message type")
 			}

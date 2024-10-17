@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	// "time"
-
 	"golang.org/x/net/websocket"
 )
 
@@ -76,31 +74,29 @@ func (c *client) SubscribeToHeartbeats(ctx context.Context) {
 	}
 
 	// Start a goroutine to handle incoming messages
-	go func() {
-		for {
-			message, err := c.ReadData()
-			if err != nil {
-				fmt.Printf("Error reading data: %v\n", err)
-				continue
-			}
+	// go func() {
+	// 	for {
+	// 		message, err := c.ReadData()
+	// 		if err != nil {
+	// 			fmt.Printf("Error reading data: %v\n", err)
+	// 			continue
+	// 		}
 
-			// fmt.Println("Received message:", string(message))
+	// 		var response HeartbeatResponse
+	// 		if err := json.Unmarshal(message, &response); err != nil {
+	// 			fmt.Printf("Error unmarshaling response: %v\n", err)
+	// 			continue
+	// 		}
 
-			var response HeartbeatResponse
-			if err := json.Unmarshal(message, &response); err != nil {
-				fmt.Printf("Error unmarshaling response: %v\n", err)
-				continue
-			}
+	// 		switch response.Type {
+	// 		case Heartbeat.String():
+	// 			fmt.Printf("Received heartbeat: %v\n", response)
+	// 		default:
+	// 			// fmt.Printf("Received unknown message type: %v\n", response.Type)
 
-			switch response.Type {
-			case Heartbeat.String():
-				fmt.Printf("Received heartbeat: %v\n", response)
-			default:
-				// fmt.Printf("Received unknown message type: %v\n", response.Type)
-
-			}
-		}
-	}()
+	// 		}
+	// 	}
+	// }()
 }
 
 func (c *client) WriteData(message []byte) (int, error) {

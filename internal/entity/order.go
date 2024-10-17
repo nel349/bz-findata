@@ -2,6 +2,7 @@ package entity
 
 // Order model data of response from exchange
 type Order struct {
+	Type      string
 	Timestamp int64
 	ProductID string
 	OrderID   string

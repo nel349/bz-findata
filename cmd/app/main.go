@@ -7,8 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/dmitryburov/go-coinbase-socket/config"
-	"github.com/dmitryburov/go-coinbase-socket/internal/app"
+	"github.com/nel349/bz-findata/config"
+	"github.com/nel349/bz-findata/internal/app"
 )
 
 func main() {

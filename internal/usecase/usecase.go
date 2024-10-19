@@ -2,9 +2,10 @@ package usecase
 
 import (
 	"context"
-	"github.com/dmitryburov/go-coinbase-socket/internal/entity"
-	"github.com/dmitryburov/go-coinbase-socket/internal/repository"
-	"github.com/dmitryburov/go-coinbase-socket/pkg/logger"
+
+	"github.com/nel349/bz-findata/internal/entity"
+	"github.com/nel349/bz-findata/internal/repository"
+	"github.com/nel349/bz-findata/pkg/logger"
 )
 
 // Exchange usecase

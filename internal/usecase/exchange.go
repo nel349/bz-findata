@@ -3,10 +3,11 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"github.com/dmitryburov/go-coinbase-socket/internal/entity"
-	"github.com/dmitryburov/go-coinbase-socket/internal/repository"
-	"github.com/dmitryburov/go-coinbase-socket/pkg/logger"
 	"time"
+
+	"github.com/nel349/bz-findata/internal/entity"
+	"github.com/nel349/bz-findata/internal/repository"
+	"github.com/nel349/bz-findata/pkg/logger"
 )
 
 type exchangeService struct {

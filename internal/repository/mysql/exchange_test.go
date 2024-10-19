@@ -2,10 +2,11 @@ package mysql
 
 import (
 	"context"
-	"github.com/dmitryburov/go-coinbase-socket/internal/entity"
-	"github.com/jmoiron/sqlx"
 	"reflect"
 	"testing"
+
+	"github.com/jmoiron/sqlx"
+	"github.com/nel349/bz-findata/internal/entity"
 )
 
 func TestNewExchangeRepository(t *testing.T) {
@@ -33,7 +34,7 @@ func Test_exchangeRepo_CreateTick(t *testing.T) {
 		db *sqlx.DB
 	}
 	type args struct {
-		ctx    context.Context
+		ctx     context.Context
 		message entity.Message
 	}
 	tests := []struct {

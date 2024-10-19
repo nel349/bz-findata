@@ -1,12 +1,13 @@
 package websocket
 
 import (
-	"github.com/dmitryburov/go-coinbase-socket/config"
-	"github.com/dmitryburov/go-coinbase-socket/internal/usecase"
-	"github.com/dmitryburov/go-coinbase-socket/pkg/exchange"
-	"github.com/dmitryburov/go-coinbase-socket/pkg/logger"
 	"reflect"
 	"testing"
+
+	"github.com/nel349/bz-findata/config"
+	"github.com/nel349/bz-findata/internal/usecase"
+	"github.com/nel349/bz-findata/pkg/exchange"
+	"github.com/nel349/bz-findata/pkg/logger"
 )
 
 func TestNewSocketClient(t *testing.T) {

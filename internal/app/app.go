@@ -2,14 +2,15 @@ package app
 
 import (
 	"context"
-	"github.com/dmitryburov/go-coinbase-socket/config"
-	"github.com/dmitryburov/go-coinbase-socket/internal/delivery/websocket"
-	"github.com/dmitryburov/go-coinbase-socket/internal/repository"
-	"github.com/dmitryburov/go-coinbase-socket/internal/usecase"
-	"github.com/dmitryburov/go-coinbase-socket/pkg/database/mysql"
-	"github.com/dmitryburov/go-coinbase-socket/pkg/exchange/coinbase"
-	"github.com/dmitryburov/go-coinbase-socket/pkg/logger/zap"
 	"os"
+
+	"github.com/nel349/bz-findata/config"
+	"github.com/nel349/bz-findata/internal/delivery/websocket"
+	"github.com/nel349/bz-findata/internal/repository"
+	"github.com/nel349/bz-findata/internal/usecase"
+	"github.com/nel349/bz-findata/pkg/database/mysql"
+	"github.com/nel349/bz-findata/pkg/exchange/coinbase"
+	"github.com/nel349/bz-findata/pkg/logger/zap"
 )
 
 // Run started application

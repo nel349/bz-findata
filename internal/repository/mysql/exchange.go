@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dmitryburov/go-coinbase-socket/internal/entity"
 	"github.com/jmoiron/sqlx"
+	"github.com/nel349/bz-findata/internal/entity"
 )
 
 type exchangeRepo struct {

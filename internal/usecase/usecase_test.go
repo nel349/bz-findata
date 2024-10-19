@@ -1,9 +1,10 @@
 package usecase
 
 import (
-	"github.com/dmitryburov/go-coinbase-socket/internal/repository"
 	"reflect"
 	"testing"
+
+	"github.com/nel349/bz-findata/internal/repository"
 )
 
 func TestNewUseCase(t *testing.T) {

@@ -2,11 +2,12 @@ package usecase
 
 import (
 	"context"
-	"github.com/dmitryburov/go-coinbase-socket/internal/entity"
-	"github.com/dmitryburov/go-coinbase-socket/internal/repository"
-	"github.com/dmitryburov/go-coinbase-socket/pkg/logger"
 	"reflect"
 	"testing"
+
+	"github.com/nel349/bz-findata/internal/entity"
+	"github.com/nel349/bz-findata/internal/repository"
+	"github.com/nel349/bz-findata/pkg/logger"
 )
 
 func TestNewExchangeService(t *testing.T) {

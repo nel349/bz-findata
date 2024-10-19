@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/dmitryburov/go-coinbase-socket/internal/entity"
+	"github.com/nel349/bz-findata/internal/entity"
 )
 
 // Base Response struct

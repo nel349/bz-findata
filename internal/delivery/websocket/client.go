@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"github.com/dmitryburov/go-coinbase-socket/config"
-	"github.com/dmitryburov/go-coinbase-socket/internal/entity"
-	"github.com/dmitryburov/go-coinbase-socket/internal/usecase"
-	"github.com/dmitryburov/go-coinbase-socket/pkg/exchange"
-	"github.com/dmitryburov/go-coinbase-socket/pkg/exchange/coinbase"
-	"github.com/dmitryburov/go-coinbase-socket/pkg/logger"
+
+	"github.com/nel349/bz-findata/config"
+	"github.com/nel349/bz-findata/internal/entity"
+	"github.com/nel349/bz-findata/internal/usecase"
+	"github.com/nel349/bz-findata/pkg/exchange"
+	"github.com/nel349/bz-findata/pkg/exchange/coinbase"
+	"github.com/nel349/bz-findata/pkg/logger"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -119,65 +120,65 @@ func (c *client) Run(ctx context.Context) error {
 }
 
 func (c *client) responseReader(symbol string, hMap map[string]chan entity.Message) error {
-    var mu = sync.Mutex{}
-    var accumulator string
+	var mu = sync.Mutex{}
+	var accumulator string
 
-    for {
-        message, err := c.conn.ReadData()
-        if err != nil {
-            return fmt.Errorf("failed to read message: %w", err)
-        }
+	for {
+		message, err := c.conn.ReadData()
+		if err != nil {
+			return fmt.Errorf("failed to read message: %w", err)
+		}
 
-        // Append the new message to the accumulator
-        accumulator += string(message)
+		// Append the new message to the accumulator
+		accumulator += string(message)
 
-        // Try to extract and process complete JSON objects
-        for {
-            start := strings.Index(accumulator, "{")
-            end := strings.LastIndex(accumulator, "}")
+		// Try to extract and process complete JSON objects
+		for {
+			start := strings.Index(accumulator, "{")
+			end := strings.LastIndex(accumulator, "}")
 
-            if start == -1 || end == -1 || end < start {
-                // No complete JSON object found
-                break
-            }
+			if start == -1 || end == -1 || end < start {
+				// No complete JSON object found
+				break
+			}
 
-            // Extract the JSON object
-            jsonStr := accumulator[start : end+1]
-            accumulator = accumulator[end+1:]
+			// Extract the JSON object
+			jsonStr := accumulator[start : end+1]
+			accumulator = accumulator[end+1:]
 
-            // Process the complete JSON message
-            var rawJSON json.RawMessage
-            err := json.Unmarshal([]byte(jsonStr), &rawJSON)
-            if err != nil {
-                c.logger.Error("Error unmarshalling JSON: ", err)
-                continue
-            }
+			// Process the complete JSON message
+			var rawJSON json.RawMessage
+			err := json.Unmarshal([]byte(jsonStr), &rawJSON)
+			if err != nil {
+				c.logger.Error("Error unmarshalling JSON: ", err)
+				continue
+			}
 
-            response, err := coinbase.ParseResponse(rawJSON)
-            if err != nil {
-                c.logger.Error("Failed to parse response: ", err)
-                continue
-            }
+			response, err := coinbase.ParseResponse(rawJSON)
+			if err != nil {
+				c.logger.Error("Failed to parse response: ", err)
+				continue
+			}
 
-            switch r := response.(type) {
-            case *coinbase.TickerResponse:
-                ticker, err := r.ToTicker()
-                if err != nil {
-                    c.logger.Error(err)
-                    continue
-                }
-                mu.Lock()
-                hMap[symbol] <- entity.Message{Ticker: ticker}
-                mu.Unlock()
-            case *coinbase.OrderResponse:
-                order, err := r.ToOrderResponse()
-                if err != nil {
-                    c.logger.Error(err)
-                    continue
-                }
-                mu.Lock()
-                hMap[symbol] <- entity.Message{Order: order}
-                mu.Unlock()
+			switch r := response.(type) {
+			case *coinbase.TickerResponse:
+				ticker, err := r.ToTicker()
+				if err != nil {
+					c.logger.Error(err)
+					continue
+				}
+				mu.Lock()
+				hMap[symbol] <- entity.Message{Ticker: ticker}
+				mu.Unlock()
+			case *coinbase.OrderResponse:
+				order, err := r.ToOrderResponse()
+				if err != nil {
+					c.logger.Error(err)
+					continue
+				}
+				mu.Lock()
+				hMap[symbol] <- entity.Message{Order: order}
+				mu.Unlock()
 			case *coinbase.HeartbeatResponse:
 				heartbeat, err := r.ToHeartbeat()
 				if err != nil {
@@ -187,11 +188,11 @@ func (c *client) responseReader(symbol string, hMap map[string]chan entity.Messa
 				mu.Lock()
 				hMap[symbol] <- entity.Message{Heartbeat: heartbeat}
 				mu.Unlock()
-            case *coinbase.Response:
-                if r.Type == coinbase.Error.String() {
-                    c.logger.Error(fmt.Errorf("API error: %s - %s", r.Message, r.Reason))
-                }
-            }
-        }
-    }
+			case *coinbase.Response:
+				if r.Type == coinbase.Error.String() {
+					c.logger.Error(fmt.Errorf("API error: %s - %s", r.Message, r.Reason))
+				}
+			}
+		}
+	}
 }

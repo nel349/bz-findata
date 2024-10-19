@@ -2,9 +2,10 @@ package repository
 
 import (
 	"context"
-	"github.com/dmitryburov/go-coinbase-socket/internal/entity"
-	"github.com/dmitryburov/go-coinbase-socket/internal/repository/mysql"
+
 	"github.com/jmoiron/sqlx"
+	"github.com/nel349/bz-findata/internal/entity"
+	"github.com/nel349/bz-findata/internal/repository/mysql"
 )
 
 // Exchange methods implementation

@@ -1,4 +1,4 @@
-module github.com/dmitryburov/go-coinbase-socket
+module github.com/nel349/bz-findata
 
 go 1.19
 

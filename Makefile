@@ -8,7 +8,10 @@ help: ## Show this help
 	@grep -h -E '^[a-zA-Z_-].+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 compose.run: ## Start with docker-compose
-	docker-compose up --build
+	docker-compose --env-file env.list up --build
+
+compose.run.analysis: ## Start analysis app
+	docker-compose --env-file env.list up --build analysis_app
 
 compose.stop: ## Stop docker-compose
 	docker-compose down

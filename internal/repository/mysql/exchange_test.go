@@ -34,7 +34,7 @@ func Test_exchangeRepo_CreateTick(t *testing.T) {
 	}
 	type args struct {
 		ctx    context.Context
-		ticker entity.Ticker
+		message entity.Message
 	}
 	tests := []struct {
 		name    string
@@ -49,7 +49,7 @@ func Test_exchangeRepo_CreateTick(t *testing.T) {
 			e := &exchangeRepo{
 				db: tt.fields.db,
 			}
-			if err := e.CreateTick(tt.args.ctx, tt.args.ticker); (err != nil) != tt.wantErr {
+			if err := e.CreateTick(tt.args.ctx, tt.args.message); (err != nil) != tt.wantErr {
 				t.Errorf("CreateTick() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

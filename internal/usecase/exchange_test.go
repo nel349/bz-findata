@@ -37,7 +37,7 @@ func Test_exchangeService_Tick(t *testing.T) {
 	}
 	type args struct {
 		ctx context.Context
-		ch  <-chan entity.Ticker
+		ch  <-chan entity.Message
 	}
 	tests := []struct {
 		name    string
@@ -53,8 +53,8 @@ func Test_exchangeService_Tick(t *testing.T) {
 				exchange: tt.fields.exchange,
 				logger:   tt.fields.logger,
 			}
-			if err := e.Tick(tt.args.ctx, tt.args.ch); (err != nil) != tt.wantErr {
-				t.Errorf("Tick() error = %v, wantErr %v", err, tt.wantErr)
+			if err := e.ProcessStream(tt.args.ctx, tt.args.ch); (err != nil) != tt.wantErr {
+				t.Errorf("ProcessStream() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

@@ -16,6 +16,5 @@ Thumbs.db
 .idea/
 cdp_api_key.json
 env.list
-app
 analysis_app/main
 analysis_app/coinbase-analysis

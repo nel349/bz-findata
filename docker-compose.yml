@@ -51,6 +51,22 @@ services:
       - ./scripts/schema.sql:/docker-entrypoint-initdb.d/1.sql
     networks:
       - local
+  
+  analysis_app:
+    build:
+      context: ./analysis_app
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - local
+    env_file:
+      - env.list
+    environment:
+      DB_HOST: mysql:3306
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_BASE: test
 
 networks:
   local:

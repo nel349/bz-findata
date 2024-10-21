@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 
+	// "github.com/nel349/coinbase-analysis/auth"
+	// "github.com/nel349/bz-findata/pkg/exchange/coinbase"
 	"github.com/nel349/coinbase-analysis/auth"
 	"github.com/nel349/coinbase-analysis/internal/analysis"
 	"github.com/nel349/coinbase-analysis/internal/database"
@@ -14,7 +16,7 @@ import (
 const (
 	requestMethod = "GET"
 	requestHost   = "api.coinbase.com"
-	requestPath   = "/api/v3/brokerage/accounts"
+	requestPath   = "/api/v3/brokerage/key_permissions"
 )
 
 func main() {
@@ -48,11 +50,21 @@ func main() {
 		fmt.Printf("Order ID: %s, Size: %f, Price: %f\n", order.OrderID, order.Size, order.Price)
 	}
 
-	uri := fmt.Sprintf("%s %s%s", requestMethod, requestHost, requestPath)
+	uri := fmt.Sprintf("https://%s%s", requestHost, requestPath)
 
 	jwt, err := auth.BuildJWT(uri)
 
-	fmt.Println("adslfdksfjdsfsdf", jwt)
+	// fmt.Println("JWT:", jwt)
+	fmt.Println("URI:", uri)
+
+	// lets print the command with the jwt
+	// fmt.Printf("export JWT=%s\n", jwt)
+
+	// print curl command
+	fmt.Printf("curl -X %s https://%s%s -H \"Authorization: Bearer %s\"\n", requestMethod, requestHost, requestPath, jwt)
+
+	// auth := coinbase.NewAuth()
+		// auth.GenerateSignature()
 
 	if err != nil {
 		fmt.Printf("error building jwt: %v", err)

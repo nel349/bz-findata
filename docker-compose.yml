@@ -67,6 +67,8 @@ services:
       DB_USER: root
       DB_PASSWORD: root
       DB_BASE: test
+    ports:
+      - "8090:8090"
 
 networks:
   local:

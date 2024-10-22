@@ -37,8 +37,8 @@ type APIKeyClaims struct {
 }
 
 func BuildJWT(uri string) (string, error) {
-	fmt.Println("keyName:", keyName)
-	fmt.Println("keySecret:", keySecret)
+	// fmt.Println("keyName:", keyName)
+	// fmt.Println("keySecret:", keySecret)
 	block, _ := pem.Decode([]byte(keySecret))
 	if block == nil {
 		return "", fmt.Errorf("jwt: Could not decode private key")

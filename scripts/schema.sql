@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS `orders`
     `order_type` varchar(8) NULL, -- market or limit
     `client_oid` varchar(64) NULL, -- client order id
     `sequence` bigint unsigned NOT NULL,
+    `remaining_size` float NULL,
+    `reason` varchar(64) NULL,
     CONSTRAINT orders_pk
         PRIMARY KEY (`timestamp`, `product_id`, `type`, `sequence`)
 ) ENGINE = InnoDB;

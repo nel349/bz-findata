@@ -36,6 +36,8 @@ type OrderResponse struct {
 	Side      string    `json:"side"`
 	OrderType string    `json:"order_type"`
 	ClientOID string    `json:"client-oid"` // Note the hyphen in the JSON tag
+	RemainingSize string    `json:"remaining_size,omitempty"`
+	Reason        string    `json:"reason,omitempty"`
 }
 
 type HeartbeatResponse struct {
@@ -102,7 +104,7 @@ func (r *TickerResponse) ToTicker() (*entity.Ticker, error) {
 // Update the ToOrderResponse method to handle string conversions
 func (r *OrderResponse) ToOrderResponse() (*entity.Order, error) {
 
-	var size, price, funds float64
+	var size, price, funds, remainingSize float64
 	var err error
 
 	if r.Size != "" {
@@ -126,6 +128,13 @@ func (r *OrderResponse) ToOrderResponse() (*entity.Order, error) {
 		}
 	}
 
+	if r.RemainingSize != "" {
+		remainingSize, err = strconv.ParseFloat(r.RemainingSize, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid remaining size: %w", err)
+		}
+	}
+	
 	return &entity.Order{
 		Type:      r.Type,
 		Timestamp: r.Time.UnixNano(),
@@ -137,7 +146,9 @@ func (r *OrderResponse) ToOrderResponse() (*entity.Order, error) {
 		Side:      r.Side,
 		ClientOID: r.ClientOID,
 		ProductID: r.ProductID,
-		Sequence:  r.Sequence,
+		Sequence:    r.Sequence,
+		RemainingSize: remainingSize,
+		Reason:        r.Reason,
 		// Set other fields as needed
 	}, nil
 }

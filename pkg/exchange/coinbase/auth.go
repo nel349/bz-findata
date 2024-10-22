@@ -40,9 +40,12 @@ func (a *Auth) GenerateSignature() (string, int64, error) {
 
 	signature := base64.StdEncoding.EncodeToString(h.Sum(nil))
 
-	fmt.Printf("Debug: Timestamp: %d\n", timestamp)
-	fmt.Printf("Debug: Message: %s\n", message)
-	fmt.Printf("Debug: Signature: %s\n", signature)
+	// fmt.Printf("Debug: Timestamp: %d\n", timestamp)
+	// fmt.Printf("Debug: Message: %s\n", message)
+	// fmt.Printf("Debug: Signature: %s\n", signature)
+	// fmt.Printf("Debug: API Key: %s\n", a.Key)
+	// fmt.Printf("Debug: API Secret: %s\n", a.Secret)
+	// fmt.Printf("Debug: API Passphrase: %s\n", a.Passphrase)
 
 	return signature, timestamp, nil
 }
@@ -52,9 +55,9 @@ func GetWSCredentials() (string, string, string) {
     wsApiSecret := os.Getenv("COINBASE_WS_API_SECRET")
     wsApiPassphrase := os.Getenv("COINBASE_WS_API_PASSPHRASE")
 
-    fmt.Printf("Debug: API Key length: %d\n", len(wsApiKey))
-    fmt.Printf("Debug: API Secret length: %d\n", len(wsApiSecret))
-    fmt.Printf("Debug: API Passphrase length: %d\n", len(wsApiPassphrase))
+    // fmt.Printf("Debug: API Key length: %d\n", len(wsApiKey))
+    // fmt.Printf("Debug: API Secret length: %d\n", len(wsApiSecret))
+    // fmt.Printf("Debug: API Passphrase length: %d\n", len(wsApiPassphrase))
 
     if wsApiKey == "" || wsApiSecret == "" || wsApiPassphrase == "" {
         fmt.Println("One or more required environment variables are not set")

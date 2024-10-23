@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/nel349/bz-findata/internal/entity"
+	"github.com/nel349/bz-findata/pkg/entity"
 )
 
 type exchangeRepo struct {

@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/nel349/bz-findata/internal/entity"
+	"github.com/nel349/bz-findata/pkg/entity"
 )
 
 // Base Response struct
@@ -27,15 +27,15 @@ type TickerResponse struct {
 // OrderResponse to handler all order data (received, open, done, match, etc.)
 type OrderResponse struct {
 	Response
-	Time      time.Time `json:"time"`
-	Sequence  int       `json:"sequence"`
-	OrderID   string    `json:"order_id"`
-	Size      string    `json:"size,omitempty"`  // Only for limit orders
-	Price     string    `json:"price,omitempty"` // Only for limit orders
-	Funds     string    `json:"funds,omitempty"` // Only for market orders
-	Side      string    `json:"side"`
-	OrderType string    `json:"order_type"`
-	ClientOID string    `json:"client-oid"` // Note the hyphen in the JSON tag
+	Time          time.Time `json:"time"`
+	Sequence      int       `json:"sequence"`
+	OrderID       string    `json:"order_id"`
+	Size          string    `json:"size,omitempty"`  // Only for limit orders
+	Price         string    `json:"price,omitempty"` // Only for limit orders
+	Funds         string    `json:"funds,omitempty"` // Only for market orders
+	Side          string    `json:"side"`
+	OrderType     string    `json:"order_type"`
+	ClientOID     string    `json:"client-oid"` // Note the hyphen in the JSON tag
 	RemainingSize string    `json:"remaining_size,omitempty"`
 	Reason        string    `json:"reason,omitempty"`
 }
@@ -134,19 +134,19 @@ func (r *OrderResponse) ToOrderResponse() (*entity.Order, error) {
 			return nil, fmt.Errorf("invalid remaining size: %w", err)
 		}
 	}
-	
+
 	return &entity.Order{
-		Type:      r.Type,
-		Timestamp: r.Time.UnixNano(),
-		OrderID:   r.OrderID,
-		OrderType: r.OrderType,
-		Size:      size,
-		Price:     price,
-		Funds:     funds,
-		Side:      r.Side,
-		ClientOID: r.ClientOID,
-		ProductID: r.ProductID,
-		Sequence:    r.Sequence,
+		Type:          r.Type,
+		Timestamp:     r.Time.UnixNano(),
+		OrderID:       r.OrderID,
+		OrderType:     r.OrderType,
+		Size:          size,
+		Price:         price,
+		Funds:         funds,
+		Side:          r.Side,
+		ClientOID:     r.ClientOID,
+		ProductID:     r.ProductID,
+		Sequence:      r.Sequence,
 		RemainingSize: remainingSize,
 		Reason:        r.Reason,
 		// Set other fields as needed

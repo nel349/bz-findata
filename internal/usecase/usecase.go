@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 
-	"github.com/nel349/bz-findata/internal/entity"
+	"github.com/nel349/bz-findata/pkg/entity"
 	"github.com/nel349/bz-findata/internal/repository"
 	"github.com/nel349/bz-findata/pkg/logger"
 )

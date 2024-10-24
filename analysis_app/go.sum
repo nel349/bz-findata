@@ -17,6 +17,8 @@ github.com/nel349/bz-findata v0.0.2 h1:yHafiK+0fY2K8ddM9oEtnDb/K7B5q8ctkbFwipIwF
 github.com/nel349/bz-findata v0.0.2/go.mod h1:tJm/pfq/Y0F1N7pp/BY9W/uWrQ3ld3Ace/o9ukBupRE=
 github.com/nel349/bz-findata v0.9.2 h1:aPZKZb7qikFbmi9Dg0dg0OM9QknCaTWevom6ipYkE9M=
 github.com/nel349/bz-findata v0.9.2/go.mod h1:tJm/pfq/Y0F1N7pp/BY9W/uWrQ3ld3Ace/o9ukBupRE=
+github.com/nel349/bz-findata v0.9.3 h1:JUDLPpAvngz+qBUml44MkMRMIUaVJ+gUrMwT1QHN4BM=
+github.com/nel349/bz-findata v0.9.3/go.mod h1:tJm/pfq/Y0F1N7pp/BY9W/uWrQ3ld3Ace/o9ukBupRE=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

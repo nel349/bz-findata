@@ -16,7 +16,7 @@ require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
-	github.com/nel349/bz-findata v0.0.2 // indirect
+	github.com/nel349/bz-findata v0.9.3 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
 	golang.org/x/crypto v0.28.0 // indirect
 )

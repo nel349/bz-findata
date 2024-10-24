@@ -10,6 +10,9 @@ help: ## Show this help
 compose.run: ## Start with docker-compose
 	docker-compose --env-file env.list up --build
 
+compose.run.app: ## Start app
+	docker-compose --env-file env.list up --build app
+
 compose.run.analysis: ## Start analysis app
 	docker-compose --env-file env.list up --build analysis_app
 

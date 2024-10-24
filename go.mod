@@ -7,7 +7,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/sethvargo/go-envconfig v0.9.0
 	go.uber.org/zap v1.24.0
-	golang.org/x/net v0.7.0
+	golang.org/x/net v0.30.0
 	golang.org/x/sync v0.1.0
 )
 

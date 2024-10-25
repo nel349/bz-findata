@@ -2,45 +2,48 @@ package analysis
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/supabase-community/supabase-go"
 )
 
 type Service struct {
 	db *sqlx.DB
+	supabaseClient *supabase.Client
 }
 
 type Order struct {
-	OrderID   string    `db:"order_id"`
-	Price     float64   `db:"price"`
-	ProductID string    `db:"product_id,omitempty"`
-	Type      string    `db:"type,omitempty"`
-	Timestamp int64     `db:"timestamp,omitempty"`
+	OrderID   string    `json:"order_id" db:"order_id"` // Use both 'json' and 'db' tags
+	Price     float64   `json:"price" db:"price"`
+	ProductID string    `json:"product_id,omitempty" db:"product_id,omitempty"`
+	Type      string    `json:"type,omitempty" db:"type,omitempty"`
+	Timestamp int64     `json:"timestamp,omitempty" db:"timestamp,omitempty"`
 }
 
 type ReceivedOrder struct {
 	Order
-	OrderType string `db:"order_type,omitempty"`
-	Size      float64   `db:"size"`
-	Side      string    `db:"side"`
+	OrderType string `json:"order_type,omitempty"`
+	Size      float64   `json:"size" db:"size"`
+	Side      string    `json:"side" db:"side"`
 }
 
 type OpenOrder struct {
 	Order
-	RemainingSize float64 `db:"remaining_size"`
-	Side          string  `db:"side"`
+	RemainingSize float64 `json:"remaining_size" db:"remaining_size"`
+	Side          string  `json:"side" db:"side"`
 }
 
 type DoneOrder struct {
 	Order
-	RemainingSize float64 `db:"remaining_size"`
-	Side          string  `db:"side"`
-	Reason        string  `db:"reason"`
+	RemainingSize float64 `json:"remaining_size"`
+	Side          string  `json:"side" db:"side"`
+	Reason        string  `json:"reason" db:"reason"`
 }
 
-func NewService(db *sqlx.DB) *Service {
-	return &Service{db: db}
+func NewService(db *sqlx.DB, supabaseClient *supabase.Client) *Service {
+	return &Service{db: db, supabaseClient: supabaseClient}
 }
 
 func (s *Service) GetLargestOrdersInLastNHours(ctx context.Context, hours int, limit int) ([]Order, error) {
@@ -67,6 +70,16 @@ func (s *Service) GetLargestReceivedOrdersInLastNHours(ctx context.Context, hour
 	`
 	var orders []ReceivedOrder
 	err := s.db.SelectContext(ctx, &orders, query, time.Now().Add(-time.Duration(hours)*time.Hour), limit)
+	if err != nil {
+		log.Println("error selecting orders from db", err)
+	}
+
+	// Let's save to supabase 
+	_, err = s.supabaseClient.From("orders").Insert(orders, false, "", "", "").ExecuteTo(&orders)
+	if err != nil {
+		log.Println("error inserting orders to supabase", err)
+	}
+
 	return orders, err
 }
 

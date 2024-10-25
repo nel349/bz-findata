@@ -12,6 +12,7 @@ import (
 	// "github.com/nel349/bz-findata/pkg/exchange/coinbase"
 	"github.com/nel349/coinbase-analysis/internal/analysis"
 	"github.com/nel349/coinbase-analysis/internal/database"
+	"github.com/nel349/coinbase-analysis/supabase"
 )
 
 // const (
@@ -47,8 +48,10 @@ func main() {
 	}
 	defer db.Close()
 
+	// Initialize supabase client
+	supabaseRepo := supabase.NewSupabaseRepository()
 	// Initialize analysis service
-	analysisService := analysis.NewService(db)
+	analysisService := analysis.NewService(db, supabaseRepo.Client)
 
 	fmt.Println("Starting analysis app...")
 

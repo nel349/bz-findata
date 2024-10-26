@@ -1,4 +1,4 @@
-# Coinbase websocket client on Golang
+# Multi-financial data websocket client on Golang
 
 ![IMG](docs/hero.gif)
 

@@ -73,9 +73,18 @@ func (s *Service) GetLargestReceivedOrdersInLastNHours(ctx context.Context, hour
 	if err != nil {
 		log.Println("error selecting orders from db", err)
 	}
+	// Convert timestamps for Supabase compatibility
+	supabaseOrders := make([]ReceivedOrder, len(orders))
+	for i, order := range orders {
+		supabaseOrders[i] = order
+		
+        // Convert nanoseconds to seconds for Supabase
+        unixSeconds := order.Timestamp / 1e9
+		supabaseOrders[i].Timestamp = unixSeconds
+	}
 
 	// Let's save to supabase 
-	_, err = s.supabaseClient.From("orders").Insert(orders, false, "", "", "").ExecuteTo(&orders)
+	_, err = s.supabaseClient.From("orders").Insert(supabaseOrders, false, "", "", "").ExecuteTo(&supabaseOrders)
 	if err != nil {
 		log.Println("error inserting orders to supabase", err)
 	}

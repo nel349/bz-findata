@@ -5,8 +5,11 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"os"
+
+	// "os"
 	"time"
+
+	"github.com/nel349/bz-findata/pkg/utils"
 )
 
 // authentication for web sockets
@@ -51,9 +54,18 @@ func (a *Auth) GenerateSignature() (string, int64, error) {
 }
 
 func GetWSCredentials() (string, string, string) {
-    wsApiKey := os.Getenv("COINBASE_WS_API_KEY")
-    wsApiSecret := os.Getenv("COINBASE_WS_API_SECRET")
-    wsApiPassphrase := os.Getenv("COINBASE_WS_API_PASSPHRASE")
+    // wsApiKey := os.Getenv("COINBASE_WS_API_KEY")
+    // wsApiSecret := os.Getenv("COINBASE_WS_API_SECRET")
+    // wsApiPassphrase := os.Getenv("COINBASE_WS_API_PASSPHRASE")
+
+	secret, err := utils.GetAwsSecret()
+	if err != nil {
+		fmt.Println("Failed to retrieve secret", err)
+	}
+
+	wsApiKey := secret.COINBASE_WS_API_KEY
+	wsApiSecret := secret.COINBASE_WS_API_SECRET
+	wsApiPassphrase := secret.COINBASE_WS_API_PASSPHRASE
 
     // fmt.Printf("Debug: API Key length: %d\n", len(wsApiKey))
     // fmt.Printf("Debug: API Secret length: %d\n", len(wsApiSecret))

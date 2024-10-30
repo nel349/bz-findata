@@ -22,7 +22,7 @@ func NewAuth() *Auth {
 }
 // generate signature
 func (a *Auth) GenerateSignature() (string, int64, error) {
-	timestamp := time.Now().Unix()
+	timestamp := time.Now().UnixNano()
 	method := "GET"
 	requestPath := "/users/self/verify"
 	body := ""

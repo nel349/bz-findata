@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	// "github.com/nel349/coinbase-analysis/auth"
 	// "github.com/nel349/bz-findata/pkg/exchange/coinbase"
@@ -55,15 +56,26 @@ func main() {
 
 	fmt.Println("Starting analysis app...")
 
-	// Example: Get largest orders in the last 24 hours
-	largestOrders, err := analysisService.GetLargestOrdersInLastNHours(ctx, 24, 10)
+	// Example: Get largest orders in the last N hours
+	hours := 1
+	limit := 10
+	largestOrders, err := analysisService.GetLargestOrdersInLastNHours(ctx, hours, limit)
 	if err != nil {
 		log.Fatalf("Failed to get largest orders: %v", err)
 	}
 
-	fmt.Println("Largest orders in the last 24 hours:")
+	fmt.Printf("Largest orders in the last %d hours:\n", hours)
 	for _, order := range largestOrders {
-		fmt.Printf("Order ID: %s, Product ID: %s, Price: %f\n", order.Type, order.ProductID, order.Price)
+		localTime := time.Unix(order.Timestamp/1e9, 0).Local().UTC()
+		location, _ := time.LoadLocation("America/Denver")
+
+		fmt.Printf("Order ID: %s, Order Type: %s, Timestamp: %s, Product ID: %s, Price: %f\n",
+			order.OrderID,
+			order.Type,
+			localTime.In(location),
+			order.ProductID,
+			order.Price,
+		)
 	}
 
 	// uri := fmt.Sprintf("https://%s%s", requestHost, requestPath)

@@ -2,8 +2,8 @@ package entity
 
 // Order model data of response from exchange
 type Order struct {
-	Type      string
-	Timestamp int64
+	Type      string  `db:"type"`
+	Timestamp int64   `db:"timestamp"`
 	ProductID string  `db:"product_id"`
 	OrderID   string  `db:"order_id"`
 	Funds     float64 `db:"funds"`

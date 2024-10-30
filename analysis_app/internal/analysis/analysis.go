@@ -48,20 +48,20 @@ func NewService(db *sqlx.DB, supabaseClient *supabase.Client) *Service {
 
 func (s *Service) GetLargestOrdersInLastNHours(ctx context.Context, hours int, limit int) ([]Order, error) {
 	query := `
-		SELECT order_id, type, product_id, price
+		SELECT order_id, type, product_id, price, timestamp
 		FROM orders
 		WHERE timestamp > ?
 		ORDER BY size * price DESC
 		LIMIT ?
 	`
 	var orders []Order
-	err := s.db.SelectContext(ctx, &orders, query, time.Now().Add(-time.Duration(hours)*time.Hour), limit)
+	err := s.db.SelectContext(ctx, &orders, query, time.Now().Add(-time.Duration(hours)*time.Hour).UnixNano(), limit)
 	return orders, err
 }
 
 func (s *Service) GetLargestReceivedOrdersInLastNHours(ctx context.Context, hours int, limit int) ([]ReceivedOrder, error) {
 	query := `
-		SELECT type, product_id, order_id, size, price, side
+		SELECT type, product_id, order_id, size, price, side, timestamp
 		FROM orders
 		WHERE timestamp > ?
 		AND type = 'received'
@@ -69,7 +69,7 @@ func (s *Service) GetLargestReceivedOrdersInLastNHours(ctx context.Context, hour
 		LIMIT ?
 	`
 	var orders []ReceivedOrder
-	err := s.db.SelectContext(ctx, &orders, query, time.Now().Add(-time.Duration(hours)*time.Hour), limit)
+	err := s.db.SelectContext(ctx, &orders, query, time.Now().Add(-time.Duration(hours)*time.Hour).UnixNano(), limit)
 	if err != nil {
 		log.Println("error selecting orders from db", err)
 	}
@@ -86,7 +86,7 @@ func (s *Service) GetLargestReceivedOrdersInLastNHours(ctx context.Context, hour
 // Get the largest open orders in last N hours
 func (s *Service) GetLargestOpenOrdersInLastNHours(ctx context.Context, hours int, limit int) ([]OpenOrder, error) {
 	query := `
-		SELECT order_id, type, product_id, price, remaining_size, side
+		SELECT order_id, type, product_id, price, remaining_size, side, timestamp
 		FROM orders
 		WHERE timestamp > ?
 		AND type = 'open'
@@ -94,6 +94,6 @@ func (s *Service) GetLargestOpenOrdersInLastNHours(ctx context.Context, hours in
 		LIMIT ?
 	`
 	var orders []OpenOrder
-	err := s.db.SelectContext(ctx, &orders, query, time.Now().Add(-time.Duration(hours)*time.Hour), limit)
+	err := s.db.SelectContext(ctx, &orders, query, time.Now().Add(-time.Duration(hours)*time.Hour).UnixNano(), limit)
 	return orders, err
 }

@@ -116,7 +116,7 @@ func main() {
 
 	// get the largest received orders
 	http.HandleFunc("/btc/largest-received-orders", func(w http.ResponseWriter, r *http.Request) {
-		largestReceivedOrders, err := analysisService.GetLargestReceivedOrdersInLastNHours(ctx, 24, 10)
+		largestReceivedOrders, err := analysisService.GetLargestReceivedOrdersInLastNHours(ctx, 2, 10)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

@@ -1,0 +1,158 @@
+{
+    "family": "bz-findata-task",
+    "networkMode": "awsvpc",
+    "requiresCompatibilities": ["FARGATE"],
+    "cpu": "2048",
+    "memory": "4096",
+    "executionRoleArn": "arn:aws:iam::886436943186:role/ecsTaskExecutionRole",
+    "taskRoleArn": "arn:aws:iam::886436943186:role/ecsTaskRole",
+    "volumes": [
+        {
+            "name": "mysql-db",
+            "efsVolumeConfiguration": {
+                "fileSystemId": "fs-05726385a8014abd6",
+                "rootDirectory": "/",
+                "transitEncryption": "ENABLED"
+            }
+        }
+    ],
+    "containerDefinitions": [
+        {
+            "name": "mysql",
+            "image": "mysql:latest",
+            "essential": true,
+            "environment": [
+                { "name": "MYSQL_DATABASE", "value": "test" },
+                { "name": "MYSQL_ROOT_PASSWORD", "value": "root" },
+                { "name": "MYSQL_ROOT_HOST", "value": "%" }
+            ],
+            "mountPoints": [
+                {
+                    "sourceVolume": "mysql-db",
+                    "containerPath": "/var/lib/mysql",
+                    "readOnly": false
+                }
+            ],
+            "portMappings": [
+                {
+                    "containerPort": 3306,
+                    "protocol": "tcp"
+                }
+            ],
+            "healthCheck": {
+                "command": [
+                    "CMD-SHELL",
+                    "mysqladmin ping -h 127.0.0.1 -u root -proot"
+                ],
+                "interval": 30,
+                "timeout": 10,
+                "retries": 5,
+                "startPeriod": 60
+            },
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/bz-findata",
+                    "awslogs-region": "us-east-2",
+                    "awslogs-stream-prefix": "mysql",
+                    "awslogs-create-group": "true"
+                }
+            }
+        },
+        {
+            "name": "bz-findata-coinbase",
+            "image": "886436943186.dkr.ecr.us-east-2.amazonaws.com/bz-findata-coinbase",
+            "essential": true,
+            "environment": [
+                { "name": "DB_HOST", "value": "mysql:3306" },
+                { "name": "DB_USER", "value": "root" },
+                { "name": "DB_PASSWORD", "value": "root" },
+                { "name": "DB_BASE", "value": "test" },
+                {
+                    "name": "EXCHANGE_URL",
+                    "value": "wss://ws-feed.exchange.coinbase.com"
+                },
+                { "name": "EXCHANGE_ORIGIN", "value": "https://coinbase.com" },
+                { "name": "EXCHANGE_SYMBOLS", "value": "ETH-USD" },
+                { "name": "EXCHANGE_CHANNELS", "value": "full" }
+            ],
+            "dependsOn": [
+                {
+                    "containerName": "mysql",
+                    "condition": "HEALTHY"
+                }
+            ],
+            "healthCheck": {
+                "command": [
+                    "CMD-SHELL",
+                    "wget -q --spider http://127.0.0.1:8080/health || exit 1"
+                ],
+                "interval": 30,
+                "timeout": 10,
+                "retries": 5,
+                "startPeriod": 60
+            },
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/bz-findata",
+                    "awslogs-region": "us-east-2",
+                    "awslogs-stream-prefix": "coinbase",
+                    "awslogs-create-group": "true"
+                }
+            },
+            "portMappings": [
+                {
+                    "containerPort": 8080,
+                    "protocol": "tcp"
+                }
+            ]
+        },
+        {
+            "name": "bz-findata-analysis",
+            "image": "886436943186.dkr.ecr.us-east-2.amazonaws.com/bz-findata-analysis",
+            "essential": true,
+            "environment": [
+                { "name": "DB_HOST", "value": "mysql:3306" },
+                { "name": "DB_USER", "value": "root" },
+                { "name": "DB_PASSWORD", "value": "root" },
+                { "name": "DB_BASE", "value": "test" }
+            ],
+            "dependsOn": [
+                {
+                    "containerName": "bz-findata-coinbase",
+                    "condition": "HEALTHY"
+                },
+                {
+                    "containerName": "mysql",
+                    "condition": "HEALTHY"
+                }
+            ],
+            "portMappings": [
+                {
+                    "containerPort": 8090,
+                    "protocol": "tcp"
+                }
+            ],
+            "healthCheck": {
+                "command": [
+                    "CMD-SHELL",
+                    "wget -q --spider http://127.0.0.1:8090/health || exit 1"
+                ],
+                "interval": 30,
+                "timeout": 10,
+                "retries": 5,
+                "startPeriod": 60
+            },
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/bz-findata",
+                    "awslogs-region": "us-east-2",
+                    "awslogs-stream-prefix": "analysis",
+                    "awslogs-create-group": "true"
+                }
+            }
+        }
+    ]
+}

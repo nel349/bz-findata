@@ -34,7 +34,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.28.1
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.34.3
 	github.com/google/go-cmp v0.6.0 // indirect
-	github.com/nel349/bz-findata v0.9.3
 	github.com/supabase-community/supabase-go v0.0.4
 	golang.org/x/crypto v0.28.0 // indirect
 )

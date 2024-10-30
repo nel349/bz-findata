@@ -3,9 +3,9 @@ package supabase
 import (
 	"context"
 	"fmt"
-	"github.com/nel349/bz-findata/pkg/entity"
 	"github.com/nel349/coinbase-analysis/utils"
 	"github.com/supabase-community/supabase-go"
+	"github.com/nel349/coinbase-analysis/internal/entity"
 )
 
 type supabaseRepo struct {

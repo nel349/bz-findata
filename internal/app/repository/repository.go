@@ -5,7 +5,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/nel349/bz-findata/pkg/entity"
-	"github.com/nel349/bz-findata/internal/repository/mysql"
+	"github.com/nel349/bz-findata/internal/app/repository/mysql"
 )
 
 // Exchange methods implementation

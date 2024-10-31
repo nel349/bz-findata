@@ -14,12 +14,6 @@ import (
 	"github.com/nel349/bz-findata/internal/analysis/supabase"
 )
 
-// const (
-// 	requestMethod = "GET"
-// 	requestHost   = "api.coinbase.com"
-// 	requestPath   = "/api/v3/brokerage/key_permissions"
-// )
-
 func hello(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "hello\n")
 }
@@ -55,21 +49,22 @@ func main() {
 	fmt.Println("Starting analysis app...")
 
 	// Example: Get largest orders in the last N hours
-	hours := 1
+	hours := 24
 	limit := 10
-	largestOrders, err := analysisService.GetLargestOrdersInLastNHours(ctx, hours, limit)
+	largestOrders, err := analysisService.GetLargestReceivedOrdersInLastNHours(ctx, hours, limit)
 	if err != nil {
 		log.Fatalf("Failed to get largest orders: %v", err)
 	}
 
-	fmt.Printf("Largest orders in the last %d hours:\n", hours)
+	fmt.Printf("Largest `received` type orders in the last %d hours:\n", hours)
 	for _, order := range largestOrders {
 		localTime := time.Unix(order.Timestamp/1e9, 0).Local().UTC()
 		location, err := time.LoadLocation("America/Denver")
 		if err != nil {
 			log.Fatalf("Failed to load location: %v", err)
 		}
-		fmt.Printf("Order ID: %s, Order Type: %s, Timestamp: %s, Product ID: %s, Price: %f\n",
+		fmt.Printf("Size: %f, Order ID: %s, Order Type: %s, Timestamp: %s, Product ID: %s, Price: %f\n",
+			order.Size,
 			order.OrderID,
 			order.Type,
 			localTime.In(location),
@@ -103,16 +98,6 @@ func main() {
 
 	http.HandleFunc("/hello", hello)
 	http.HandleFunc("/headers", headers)
-
-	// get the largest orders
-	http.HandleFunc("/btc/largest-orders", func(w http.ResponseWriter, r *http.Request) {
-		largestOrders, err := analysisService.GetLargestOrdersInLastNHours(ctx, 24, 10)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		json.NewEncoder(w).Encode(largestOrders)
-	})
 
 	// get the largest received orders
 	http.HandleFunc("/btc/largest-received-orders", func(w http.ResponseWriter, r *http.Request) {

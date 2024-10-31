@@ -2,6 +2,9 @@
 # Use the base image
 FROM bz-findata-base AS builder
 
+# Set the target architecture
+ENV GOARCH=amd64
+
 # Copy the entire project
 COPY . .
 

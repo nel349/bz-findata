@@ -4,6 +4,9 @@ FROM bz-findata-base AS builder
 # Add timezone data
 RUN apk add --no-cache tzdata
 
+# Set the target architecture
+ENV GOARCH=amd64
+
 # Copy the entire project
 COPY . .
 

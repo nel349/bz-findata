@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/nel349/bz-findata/internal/repository"
+	"github.com/nel349/bz-findata/internal/app/repository"
 )
 
 func TestNewUseCase(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/nel349/bz-findata/pkg/entity"
-	"github.com/nel349/bz-findata/internal/repository"
+	"github.com/nel349/bz-findata/internal/app/repository"
 	"github.com/nel349/bz-findata/pkg/logger"
 )
 

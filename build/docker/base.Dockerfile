@@ -1,5 +1,8 @@
 FROM golang:1.23-alpine AS builder
 
+# Set the target architecture
+ENV GOARCH=amd64
+
 # Install common build dependencies
 RUN apk add --no-cache git make
 

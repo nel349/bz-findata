@@ -3,6 +3,7 @@ services:
   app:
     build:
       context: .
+      dockerfile: cmd/app/Dockerfile
     environment:
       # logger
       LOGGER_CALLER: 0
@@ -58,7 +59,8 @@ services:
   
   analysis_app:
     build:
-      context: ./analysis_app
+      context: .
+      dockerfile: cmd/analysis/Dockerfile
     depends_on:
       mysql:
         condition: service_healthy

@@ -9,11 +9,9 @@ import (
 	"os"
 	"time"
 
-	// "github.com/nel349/coinbase-analysis/auth"
-	// "github.com/nel349/bz-findata/pkg/exchange/coinbase"
-	"github.com/nel349/coinbase-analysis/internal/analysis"
-	"github.com/nel349/coinbase-analysis/internal/database"
-	"github.com/nel349/coinbase-analysis/supabase"
+	"github.com/nel349/bz-findata/internal/analysis"
+	"github.com/nel349/bz-findata/internal/analysis/database"
+	"github.com/nel349/bz-findata/internal/analysis/supabase"
 )
 
 // const (
@@ -67,8 +65,10 @@ func main() {
 	fmt.Printf("Largest orders in the last %d hours:\n", hours)
 	for _, order := range largestOrders {
 		localTime := time.Unix(order.Timestamp/1e9, 0).Local().UTC()
-		location, _ := time.LoadLocation("America/Denver")
-
+		location, err := time.LoadLocation("America/Denver")
+		if err != nil {
+			log.Fatalf("Failed to load location: %v", err)
+		}
 		fmt.Printf("Order ID: %s, Order Type: %s, Timestamp: %s, Product ID: %s, Price: %f\n",
 			order.OrderID,
 			order.Type,

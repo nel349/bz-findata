@@ -3,22 +3,23 @@ package supabase
 import (
 	"context"
 	"fmt"
-	"github.com/nel349/coinbase-analysis/utils"
+
+	// "github.com/aws/aws-sdk-go-v2/aws"
+	awslocal "github.com/nel349/bz-findata/pkg/aws"
+	"github.com/nel349/bz-findata/pkg/entity"
 	"github.com/supabase-community/supabase-go"
-	"github.com/nel349/coinbase-analysis/internal/entity"
 )
 
 type supabaseRepo struct {
 	Client *supabase.Client
 }
 
-
 // // NewSupabaseRepository created supabase repository
 func NewSupabaseRepository() *supabaseRepo {
 	// projectURL := os.Getenv("SUPABASE_URL")
 	// serviceRoleKey := os.Getenv("SERVICE_ROLE_KEY")
 
-	secret, err := utils.GetAwsSecret()
+	secret, err := awslocal.GetAwsSecret()
 	if err != nil {
 		fmt.Println("Failed to retrieve secret", err)
 	}

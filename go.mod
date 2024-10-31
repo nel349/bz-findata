@@ -10,7 +10,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/sethvargo/go-envconfig v0.9.0
 	go.uber.org/zap v1.24.0
-	golang.org/x/net v0.7.0
+	golang.org/x/net v0.21.0
 	golang.org/x/sync v0.1.0
 )
 
@@ -32,10 +32,12 @@ require (
 	github.com/supabase-community/postgrest-go v0.0.11 // indirect
 	github.com/supabase-community/storage-go v0.7.0 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
+	golang.org/x/crypto v0.28.0 // indirect
 )
 
 require (
 	github.com/supabase-community/supabase-go v0.0.4
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
+	gopkg.in/go-jose/go-jose.v2 v2.6.3
 )

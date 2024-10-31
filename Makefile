@@ -18,7 +18,7 @@ build-app: build-base ## Build only main app
 	docker build --platform linux/amd64 -t coinbase-app -f cmd/app/Dockerfile .
 
 build-analysis: build-base ## Build only analysis app
-	docker build --platform linux/amd64 -t analysis_app -f cmd/analysis/Dockerfile .
+	docker build --platform linux/amd64 -t analysis-app -f cmd/analysis/Dockerfile .
 
 # Docker commands
 docker-compose-up: ## Run all services

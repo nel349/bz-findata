@@ -5,11 +5,8 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-
-	// "os"
 	"time"
-
-	"github.com/nel349/bz-findata/pkg/utils"
+	awslocal "github.com/nel349/bz-findata/pkg/aws"
 )
 
 // authentication for web sockets
@@ -58,7 +55,7 @@ func GetWSCredentials() (string, string, string) {
     // wsApiSecret := os.Getenv("COINBASE_WS_API_SECRET")
     // wsApiPassphrase := os.Getenv("COINBASE_WS_API_PASSPHRASE")
 
-	secret, err := utils.GetAwsSecret()
+	secret, err := awslocal.GetAwsSecret()
 	if err != nil {
 		fmt.Println("Failed to retrieve secret", err)
 	}

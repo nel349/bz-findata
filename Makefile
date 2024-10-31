@@ -5,20 +5,38 @@
 help: ## Show this help
 	@echo "Usage:\n  make <target>\n"
 	@echo "Targets:"
-	@grep -h -E '^[a-zA-Z_-].+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
+	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
-compose.run: ## Start with docker-compose
-	docker-compose --env-file env.list up --build
+# Build commands
+build-base: ## Build base Docker image
+	docker build -t bz-findata-base -f build/docker/base.Dockerfile .
 
-compose.run.app: ## Start app
-	docker-compose --env-file env.list up --build app
+build-all: build-base ## Build all applications
+	docker-compose build
 
-compose.run.analysis: ## Start analysis app
-	docker-compose --env-file env.list up --build analysis_app
+build-app: build-base ## Build only main app
+	docker-compose build app
 
-compose.stop: ## Stop docker-compose
+build-analysis: build-base ## Build only analysis app
+	docker-compose build analysis_app
+
+# Docker commands
+docker-compose-up: ## Run all services
+	docker-compose up
+
+app-up: ## Run only main app
+	docker-compose up --build app mysql
+
+analysis-up: ## Run only analysis app
+	docker-compose up --build analysis_app mysql
+
+docker-compose-down: ## Stop all services
 	docker-compose down
 
+clean: ## Clean all built images
+	docker-compose down --rmi all
+
+# Development commands
 deps: ## Download dependencies
 	go mod download && go mod tidy
 
@@ -36,22 +54,6 @@ release: ## Git tag create and push
 release.revert: ## Revert git release tag
 	git tag -d v${tag}
 	git push --delete origin v${tag}
-
-# logger config
-export LOGGER_CALLER=false
-export LOGGER_STACKTRACE=true
-export LOGGER_LEVEL=debug
-# database config
-export DB_HOST=localhost:3306
-export DB_USER=test_mysql
-export DB_PASSWORD=a2s_kjlasjd
-export DB_BASE=test
-# exchange config
-export EXCHANGE_URL=wss://ws-feed.exchange.coinbase.com
-export EXCHANGE_ORIGIN=https://coinbase.com
-export EXCHANGE_PROTOCOL=
-export EXCHANGE_SYMBOLS=ETH-BTC,BTC-USD,BTC-EUR
-export EXCHANGE_CHANNELS=ticker
 
 run: ## Run application local
 	go run cmd/app/main.go

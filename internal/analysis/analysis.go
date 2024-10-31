@@ -46,19 +46,6 @@ func NewService(db *sqlx.DB, supabaseClient *supabase.Client) *Service {
 	return &Service{db: db, supabaseClient: supabaseClient}
 }
 
-func (s *Service) GetLargestOrdersInLastNHours(ctx context.Context, hours int, limit int) ([]Order, error) {
-	query := `
-		SELECT order_id, type, product_id, price, timestamp
-		FROM orders
-		WHERE timestamp > ?
-		ORDER BY size * price DESC
-		LIMIT ?
-	`
-	var orders []Order
-	err := s.db.SelectContext(ctx, &orders, query, time.Now().Add(-time.Duration(hours)*time.Hour).UnixNano(), limit)
-	return orders, err
-}
-
 func (s *Service) GetLargestReceivedOrdersInLastNHours(ctx context.Context, hours int, limit int) ([]ReceivedOrder, error) {
 	query := `
 		SELECT type, product_id, order_id, size, price, side, timestamp

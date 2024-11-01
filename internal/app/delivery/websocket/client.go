@@ -1,7 +1,7 @@
 package websocket
 
 import (
-	// "bytes"
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -10,8 +10,8 @@ import (
 	"sync"
 
 	"github.com/nel349/bz-findata/config"
-	"github.com/nel349/bz-findata/pkg/entity"
 	"github.com/nel349/bz-findata/internal/app/usecase"
+	"github.com/nel349/bz-findata/pkg/entity"
 	"github.com/nel349/bz-findata/pkg/exchange"
 	"github.com/nel349/bz-findata/pkg/exchange/coinbase"
 	"github.com/nel349/bz-findata/pkg/logger"
@@ -121,7 +121,7 @@ func (c *client) Run(ctx context.Context) error {
 
 func (c *client) responseReader(symbol string, hMap map[string]chan entity.Message) error {
 	var mu = sync.Mutex{}
-	var accumulator string
+	var buffer []byte
 
 	for {
 		message, err := c.conn.ReadData()
@@ -129,27 +129,47 @@ func (c *client) responseReader(symbol string, hMap map[string]chan entity.Messa
 			return fmt.Errorf("failed to read message: %w", err)
 		}
 
-		// Append the new message to the accumulator
-		accumulator += string(message)
+		// Append new data to buffer
+		buffer = append(buffer, message...)
 
-		// Try to extract and process complete JSON objects
-		for {
-			start := strings.Index(accumulator, "{")
-			end := strings.LastIndex(accumulator, "}")
-
-			if start == -1 || end == -1 || end < start {
-				// No complete JSON object found
+		// Process complete JSON objects from buffer
+		for len(buffer) > 0 {
+			// Find first opening brace
+			start := bytes.IndexByte(buffer, '{')
+			if start == -1 {
+				buffer = nil
 				break
 			}
 
-			// Extract the JSON object
-			jsonStr := accumulator[start : end+1]
-			accumulator = accumulator[end+1:]
+			// Find matching closing brace
+			end := -1
+			depth := 0
+			for i := start; i < len(buffer); i++ {
+				switch buffer[i] {
+				case '{':
+					depth++
+				case '}':
+					depth--
+					if depth == 0 {
+						end = i + 1
+					}
+				}
+			}
 
-			// Process the complete JSON message
+			if end == -1 {
+				// No complete JSON object found
+				if start > 0 {
+					buffer = buffer[start:]
+				}
+				break
+			}
+
+			// Extract and parse the complete JSON object
+			jsonData := buffer[start:end]
+			buffer = buffer[end:]
+
 			var rawJSON json.RawMessage
-			err := json.Unmarshal([]byte(jsonStr), &rawJSON)
-			if err != nil {
+			if err := json.Unmarshal(jsonData, &rawJSON); err != nil {
 				c.logger.Error("Error unmarshalling JSON: ", err)
 				continue
 			}

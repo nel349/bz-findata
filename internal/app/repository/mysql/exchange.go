@@ -38,8 +38,6 @@ func (e *exchangeRepo) CreateOrder(ctx context.Context, message entity.Message) 
 	ctxReq, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
-	fmt.Println("Attempting to insert order", "order", message.Order)
-
 	if message.Order != nil {
 		_, err := e.db.NamedExecContext(
 			ctxReq,

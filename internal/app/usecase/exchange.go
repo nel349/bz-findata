@@ -3,10 +3,11 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/nel349/bz-findata/pkg/entity"
 	"github.com/nel349/bz-findata/internal/app/repository"
+	"github.com/nel349/bz-findata/pkg/entity"
 	"github.com/nel349/bz-findata/pkg/logger"
 )
 
@@ -21,6 +22,46 @@ func NewExchangeService(
 	logger logger.Logger,
 ) *exchangeService {
 	return &exchangeService{exchange, logger}
+}
+
+type ProductThreshold struct {
+	ProductID string
+	Threshold float64
+}
+
+var allowedOrderTypes = []string{
+	"match",
+	// "open",
+	// "done",
+	// "received",
+}
+
+var thresholds = []ProductThreshold{
+	{ProductID: "ETH-USD", Threshold: 20000}, // 20k
+	{ProductID: "BTC-USD", Threshold: 20000}, // 20k
+}
+
+func (e *exchangeService) shouldProcessOrder(order *entity.Order) bool {
+	// Check if order type is allowed
+	orderTypeAllowed := false
+	for _, allowedType := range allowedOrderTypes {
+		if strings.ToLower(order.Type) == allowedType {
+			orderTypeAllowed = true
+			break
+		}
+	}
+	if !orderTypeAllowed {
+		return false
+	}
+
+	orderValue := order.Size * order.Price
+
+	for _, t := range thresholds {
+		if order.ProductID == t.ProductID && orderValue > t.Threshold {
+			return true
+		}
+	}
+	return false
 }
 
 func (e *exchangeService) ProcessStream(ctx context.Context, ch <-chan entity.Message) error {
@@ -56,18 +97,20 @@ func (e *exchangeService) ProcessStream(ctx context.Context, ch <-chan entity.Me
 				)
 
 			case msg.Order != nil:
-				e.logger.Info(fmt.Sprintf("Received order: %+v", msg.Order))
-				if err := e.exchange.CreateOrder(ctx, msg); err != nil {
-					return err
-				}
-				e.logger.Info(
-					fmt.Sprintf(
-						"Inserted order %s > time:%d, type:%s",
-						msg.Order.ProductID,
-						msg.Order.Timestamp,
+				if e.shouldProcessOrder(msg.Order) {
+					e.logger.Info(fmt.Sprintf(
+						"Received order: total_value:%f, type:%s, product_id:%s, size:%f, price:%f",
+						msg.Order.Size*msg.Order.Price,
 						msg.Order.Type,
-					),
-				)
+						msg.Order.ProductID,
+						msg.Order.Size,
+						msg.Order.Price,
+					))
+					if err := e.exchange.CreateOrder(ctx, msg); err != nil {
+						e.logger.Error(fmt.Sprintf("Failed to create order: %v", err))
+						continue
+					}
+				}
 			case msg.Heartbeat != nil:
 				e.logger.Info(fmt.Sprintf("Received heartbeat in : %+v", msg.Heartbeat))
 			default:

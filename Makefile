@@ -12,7 +12,7 @@ build-base: ## Build base Docker image
 	docker build --platform linux/amd64 -t bz-findata-base -f build/docker/base.Dockerfile .
 
 build-all: build-base ## Build all applications
-	docker-compose build
+	docker compose build
 
 build-app: build-base ## Build only main app
 	docker build --platform linux/amd64 -t coinbase-app -f cmd/app/Dockerfile .
@@ -22,21 +22,21 @@ build-analysis: build-base ## Build only analysis app
 
 # Docker commands
 docker-compose-up: ## Run all services
-	docker-compose up
+	docker compose up
 
 app-up: build-app ## Run only main app
 	@echo "Running main app and mysql services..."
-	docker-compose up app mysql
+	docker compose up app mysql
 
 analysis-up: build-analysis ## Run only analysis app
 	@echo "Running analysis app and mysql services..."
-	docker-compose up analysis_app mysql
+	docker compose up analysis_app mysql
 
 docker-compose-down: ## Stop all services
-	docker-compose down
+	docker compose down
 
 clean: ## Clean all built images
-	docker-compose down --rmi all
+	docker compose down --rmi all
 
 # Development commands
 deps: ## Download dependencies

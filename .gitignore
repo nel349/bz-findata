@@ -18,3 +18,4 @@ cdp_api_key.json
 env.list
 analysis_app/main
 analysis_app/coinbase-analysis
+secrets_aws.json

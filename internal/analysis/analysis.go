@@ -93,3 +93,9 @@ func (s *Service) GetLargestOpenOrdersInLastNHours(ctx context.Context, hours in
 	err := s.db.SelectContext(ctx, &orders, query, time.Now().Add(-time.Duration(hours)*time.Hour).UnixNano(), limit)
 	return orders, err
 }
+
+func (s *Service) GetLargestMatchOrdersInLastNHours(ctx context.Context, hours, limit int) ([]Order, error) {
+	// Implementation similar to GetLargestReceivedOrdersInLastNHours
+	// but with type = "match"
+	return nil, nil
+}

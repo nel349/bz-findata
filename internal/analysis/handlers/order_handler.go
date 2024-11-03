@@ -54,6 +54,18 @@ func (h *OrderHandler) GetLargestMatchOrders(w http.ResponseWriter, r *http.Requ
 	respondWithJSON(w, orders)
 }
 
+func (h *OrderHandler) StoreReceivedOrdersInSupabase(w http.ResponseWriter, r *http.Request) {
+	hours, limit := parseQueryParams(r, 24, 100)
+	
+	err := h.service.StoreReceivedOrdersInSupabase(r.Context(), hours, limit)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	respondWithJSON(w, "success")
+}
+
 // Helper functions
 func parseQueryParams(r *http.Request, defaultHours, defaultLimit int) (hours, limit int) {
 	hours = defaultHours

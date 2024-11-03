@@ -60,22 +60,6 @@ func (s *Service) GetLargestReceivedOrdersInLastNHours(ctx context.Context, hour
 	if err != nil {
 		log.Println("error selecting orders from db", err)
 	}
-	// Convert timestamps for Supabase compatibility
-	supabaseOrders := make([]ReceivedOrder, len(orders))
-	for i, order := range orders {
-		supabaseOrders[i] = order
-		
-        // Convert nanoseconds to seconds for Supabase
-        unixSeconds := order.Timestamp / 1e9
-		supabaseOrders[i].Timestamp = unixSeconds
-	}
-
-	// Let's save to supabase 
-	_, err = s.supabaseClient.From("orders").Insert(supabaseOrders, false, "", "", "").ExecuteTo(&supabaseOrders)
-	if err != nil {
-		log.Println("error inserting orders to supabase", err)
-	}
-
 	return orders, err
 }
 
@@ -92,6 +76,34 @@ func (s *Service) GetLargestOpenOrdersInLastNHours(ctx context.Context, hours in
 	var orders []OpenOrder
 	err := s.db.SelectContext(ctx, &orders, query, time.Now().Add(-time.Duration(hours)*time.Hour).UnixNano(), limit)
 	return orders, err
+}
+
+// Handler to that stores orders in supabase by first getting from local db
+func (s *Service) StoreReceivedOrdersInSupabase(ctx context.Context, hours int, limit int) error {
+	orders, err := s.GetLargestReceivedOrdersInLastNHours(ctx, hours, limit)
+	if err != nil {
+		return err
+	}
+	return s.storeOrdersInSupabase(orders)
+}
+
+// New method for Supabase operations
+func (s *Service) storeOrdersInSupabase(orders []ReceivedOrder) error {
+	// Convert timestamps for Supabase compatibility
+	supabaseOrders := make([]ReceivedOrder, len(orders))
+	for i, order := range orders {
+		supabaseOrders[i] = order
+		// Convert nanoseconds to seconds for Supabase
+		supabaseOrders[i].Timestamp = order.Timestamp / 1e9
+	}
+
+	// Store in Supabase
+	_, err := s.supabaseClient.From("orders").Insert(supabaseOrders, false, "", "", "").ExecuteTo(&supabaseOrders)
+	if err != nil {
+		log.Println("error inserting orders to supabase", err)
+		return err
+	}
+	return nil
 }
 
 func (s *Service) GetLargestMatchOrdersInLastNHours(ctx context.Context, hours, limit int) ([]Order, error) {

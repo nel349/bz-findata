@@ -11,3 +11,7 @@ Content-Type: application/json
 ### Get the largest open orders
 GET http://localhost:8090/api/v1/btc/largest-open-orders?hours=240&limit=100
 Content-Type: application/json
+
+### Store received orders in supabase
+GET http://localhost:8090/api/v1/btc/store-received-orders?hours=240&limit=50
+Content-Type: application/json

@@ -10,7 +10,10 @@ import (
 	"github.com/nel349/bz-findata/internal/analysis"
 	"github.com/nel349/bz-findata/internal/analysis/database"
 	"github.com/nel349/bz-findata/internal/analysis/handlers"
+	"github.com/nel349/bz-findata/internal/analysis/infrastructure/scheduler"
 	"github.com/nel349/bz-findata/internal/analysis/supabase"
+	"github.com/nel349/bz-findata/internal/analysis/task"
+	"github.com/robfig/cron/v3"
 )
 
 type Config struct {
@@ -19,6 +22,13 @@ type Config struct {
 	DBPassword string
 	DBName     string
 	Port       string
+}
+
+type ScheduledTask struct {
+	ID       cron.EntryID `json:"id"`
+	Schedule string       `json:"schedule"`
+	Hours    int          `json:"hours"`
+	Limit    int          `json:"limit"`
 }
 
 func main() {
@@ -62,17 +72,30 @@ func run(cfg Config) error {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
+	// Initialize task manager
+	taskService := task.NewService(analysisService)
+	taskManager := scheduler.NewTaskManager(taskService)
+
 	// Routes
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Route("/btc", func(r chi.Router) {
+
+			// Largest orders and store in supabase
 			r.Get("/largest-received-orders", orderHandler.GetLargestReceivedOrders)
 			r.Get("/largest-open-orders", orderHandler.GetLargestOpenOrders)
 			r.Get("/largest-match-orders", orderHandler.GetLargestMatchOrders)
 			r.Post("/store-received-orders", orderHandler.StoreReceivedOrdersInSupabase)
 			r.Post("/store-match-orders", orderHandler.StoreMatchOrdersInSupabase)
+
+			// Scheduler endpoints
+			r.Route("/scheduler", func(r chi.Router) {
+				r.Post("/start", taskManager.StartTask)
+				r.Delete("/stop/{taskID}", taskManager.StopTask)
+				r.Get("/tasks", taskManager.ListTasks)
+			})
 		})
 	})
 
-	log.Printf("Server starting on port %s", cfg.Port)
+	log.Printf("Server started on port %s", cfg.Port)
 	return http.ListenAndServe(":"+cfg.Port, r)
 }

@@ -1,4 +1,4 @@
-### Get the largest orders
+### Get the largest match orders
 GET http://localhost:8090/api/v1/btc/largest-match-orders?hours=240&limit=100
 Content-Type: application/json
 
@@ -29,3 +29,22 @@ Content-Type: application/json
     "hours": 240,
     "limit": 50
 }
+
+### Start a task
+POST http://localhost:8090/api/v1/btc/scheduler/start
+Content-Type: application/json
+
+{
+    "schedule": "*/10 * * * * *",
+    "hours": 240,
+    "limit": 50
+}
+
+### Stop a task
+DELETE http://localhost:8090/api/v1/btc/scheduler/stop/2
+Content-Type: application/json
+
+
+### List all tasks
+GET http://localhost:8090/api/v1/btc/scheduler/tasks
+Content-Type: application/json

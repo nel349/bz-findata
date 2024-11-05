@@ -1,5 +1,5 @@
 ### Get the largest orders
-GET http://localhost:8090/api/v1/btc/largest-match-orders?hours=24&limit=100
+GET http://localhost:8090/api/v1/btc/largest-match-orders?hours=240&limit=100
 Content-Type: application/json
 
 
@@ -13,5 +13,19 @@ GET http://localhost:8090/api/v1/btc/largest-open-orders?hours=240&limit=100
 Content-Type: application/json
 
 ### Store received orders in supabase
-GET http://localhost:8090/api/v1/btc/store-received-orders?hours=240&limit=50
+POST http://localhost:8090/api/v1/btc/store-received-orders
 Content-Type: application/json
+
+{
+    "hours": 240,
+    "limit": 50
+}
+
+### Store match orders in supabase
+POST http://localhost:8090/api/v1/btc/store-match-orders
+Content-Type: application/json
+
+{
+    "hours": 240,
+    "limit": 50
+}

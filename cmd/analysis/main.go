@@ -68,7 +68,8 @@ func run(cfg Config) error {
 			r.Get("/largest-received-orders", orderHandler.GetLargestReceivedOrders)
 			r.Get("/largest-open-orders", orderHandler.GetLargestOpenOrders)
 			r.Get("/largest-match-orders", orderHandler.GetLargestMatchOrders)
-			r.Get("/store-received-orders", orderHandler.StoreReceivedOrdersInSupabase)
+			r.Post("/store-received-orders", orderHandler.StoreReceivedOrdersInSupabase)
+			r.Post("/store-match-orders", orderHandler.StoreMatchOrdersInSupabase)
 		})
 	})
 

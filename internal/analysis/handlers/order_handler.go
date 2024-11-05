@@ -55,9 +55,21 @@ func (h *OrderHandler) GetLargestMatchOrders(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *OrderHandler) StoreReceivedOrdersInSupabase(w http.ResponseWriter, r *http.Request) {
-	hours, limit := parseQueryParams(r, 24, 100)
+	hours, limit := parseBodyParams(r)
 	
 	err := h.service.StoreReceivedOrdersInSupabase(r.Context(), hours, limit)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	respondWithJSON(w, "success")
+}
+
+func (h *OrderHandler) StoreMatchOrdersInSupabase(w http.ResponseWriter, r *http.Request) {
+	hours, limit := parseBodyParams(r)
+	
+	err := h.service.StoreMatchOrdersInSupabase(r.Context(), hours, limit)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -84,6 +96,17 @@ func parseQueryParams(r *http.Request, defaultHours, defaultLimit int) (hours, l
 	}
 
 	return hours, limit
+}
+
+func parseBodyParams(r *http.Request) (hours, limit int) {
+	// Parse JSON body from request body
+	var body struct {
+		Hours int `json:"hours"`
+		Limit int `json:"limit"`
+	}
+	json.NewDecoder(r.Body).Decode(&body)
+
+	return body.Hours, body.Limit
 }
 
 func respondWithJSON(w http.ResponseWriter, data interface{}) {

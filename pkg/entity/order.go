@@ -15,4 +15,7 @@ type Order struct {
 	Sequence    int     `db:"sequence"`
 	RemainingSize float64 `db:"remaining_size"`
 	Reason        string  `db:"reason"`
-}
+	TradeID       int64   `db:"trade_id"`
+	MakerOrderID  string  `db:"maker_order_id"`
+	TakerOrderID  string  `db:"taker_order_id"`
+}	

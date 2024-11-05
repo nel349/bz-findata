@@ -38,6 +38,9 @@ type OrderResponse struct {
 	ClientOID     string    `json:"client-oid"` // Note the hyphen in the JSON tag
 	RemainingSize string    `json:"remaining_size,omitempty"`
 	Reason        string    `json:"reason,omitempty"`
+	TradeID       int64     `json:"trade_id,omitempty"` // Only for match
+	MakerOrderID  string    `json:"maker_order_id,omitempty"` // Only for match
+	TakerOrderID  string    `json:"taker_order_id,omitempty"` // Only for match
 }
 
 type HeartbeatResponse struct {
@@ -149,6 +152,9 @@ func (r *OrderResponse) ToOrderResponse() (*entity.Order, error) {
 		Sequence:      r.Sequence,
 		RemainingSize: remainingSize,
 		Reason:        r.Reason,
+		TradeID:       r.TradeID,
+		MakerOrderID:  r.MakerOrderID,
+		TakerOrderID:  r.TakerOrderID,
 		// Set other fields as needed
 	}, nil
 }

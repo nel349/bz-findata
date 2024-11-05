@@ -48,7 +48,7 @@ services:
       # Be careful! It's public port only for test. Remove this block if run in production.
       - "3306:3306"
     healthcheck:
-      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      test: ["CMD", "mysql", "-uroot", "-proot", "test", "-e", "SHOW TABLES LIKE 'orders';"]
       interval: 3s
       timeout: 5s
       retries: 5

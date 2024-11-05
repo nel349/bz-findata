@@ -41,8 +41,8 @@ func (e *exchangeRepo) CreateOrder(ctx context.Context, message entity.Message) 
 	if message.Order != nil {
 		_, err := e.db.NamedExecContext(
 			ctxReq,
-			`INSERT INTO orders (type, product_id, timestamp, order_id, funds, side, size, price, order_type, client_oid, sequence, remaining_size, reason) 
-			 VALUES (:type, :product_id, :timestamp, :order_id, :funds, :side, :size, :price, :order_type, :client_oid, IFNULL(:sequence, 0), :remaining_size, :reason)`,
+			`INSERT INTO orders (type, product_id, timestamp, order_id, funds, side, size, price, order_type, client_oid, sequence, remaining_size, reason, trade_id, maker_order_id, taker_order_id) 
+			 VALUES (:type, :product_id, :timestamp, :order_id, :funds, :side, :size, :price, :order_type, :client_oid, IFNULL(:sequence, 0), :remaining_size, :reason, :trade_id, :maker_order_id, :taker_order_id)`,
 			message.Order)
 		if err != nil {
 			fmt.Println("Error inserting order", "error", err)

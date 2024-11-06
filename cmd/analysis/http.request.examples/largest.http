@@ -3,11 +3,11 @@
 @testUrl = http://3.145.37.65:8090
 
 ### Get the largest match orders (local)
-GET {{localUrl}}/api/v1/btc/largest-match-orders?hours=240&limit=100
+GET {{localUrl}}/api/v1/btc/largest-match-orders?hours=1&limit=10
 Content-Type: application/json
 
 ### Get the largest match orders (test)
-GET {{testUrl}}/api/v1/btc/largest-match-orders?hours=200&limit=100
+GET {{testUrl}}/api/v1/btc/largest-match-orders?hours=2&limit=100
 Content-Type: application/json
 
 

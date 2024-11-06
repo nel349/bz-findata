@@ -1,7 +1,7 @@
 -- Log initialization start
 SELECT 'Initializing database schema...' as '';
 
-use test;
+use findata;
 
 CREATE TABLE IF NOT EXISTS `ticks`
 (

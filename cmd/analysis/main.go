@@ -1,12 +1,16 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/nel349/bz-findata/config"
 	"github.com/nel349/bz-findata/internal/analysis"
 	"github.com/nel349/bz-findata/internal/analysis/database"
 	"github.com/nel349/bz-findata/internal/analysis/handlers"
@@ -16,14 +20,6 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-type Config struct {
-	DBHost     string
-	DBUser     string
-	DBPassword string
-	DBName     string
-	Port       string
-}
-
 type ScheduledTask struct {
 	ID       cron.EntryID `json:"id"`
 	Schedule string       `json:"schedule"`
@@ -32,13 +28,33 @@ type ScheduledTask struct {
 }
 
 func main() {
-	// Initialize configuration
-	cfg := Config{
-		DBHost:     os.Getenv("DB_HOST"),
-		DBUser:     os.Getenv("DB_USER"),
-		DBPassword: os.Getenv("DB_PASSWORD"),
-		DBName:     os.Getenv("DB_BASE"),
-		Port:       "8090",
+	// var dbPassword string
+
+	// Check if we're running locally (you can set this env var in docker-compose)
+	// if os.Getenv("IS_LOCAL") == "true" {
+	//     dbPassword = os.Getenv("DB_PASSWORD")
+	// } else {
+	//     // Get from AWS Secrets Manager
+	//     dbSecret, err := awslocal.GetDefaultDBSecret()
+	//     if err != nil {
+	//         log.Fatalf("Failed to retrieve DB secret: %v", err)
+	//     }
+	//     dbPassword = dbSecret.DB_PASSWORD
+
+	// 	// log.Println("DB Password:", dbPassword) // TODO: remove
+	// 	// // kill process
+	// 	// os.Exit(0)
+	// }
+
+	ctx, cancel := signal.NotifyContext(context.TODO(), os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
+	go func() {
+		<-ctx.Done()
+		cancel()
+	}()
+
+	cfg, err := config.NewAnalysisConfig(ctx)
+	if err != nil {
+		log.Fatalf("failed config init: %v", err)
 	}
 
 	// Setup dependencies
@@ -47,13 +63,13 @@ func main() {
 	}
 }
 
-func run(cfg Config) error {
+func run(cfg *config.AnalysisConfig) error {
 	// Initialize dependencies
 	db, err := database.NewConnection(
-		cfg.DBHost,
-		cfg.DBUser,
-		cfg.DBPassword,
-		cfg.DBName,
+		cfg.Database.Host,
+		cfg.Database.User,
+		cfg.Database.Password,
+		cfg.Database.Base,
 	)
 	if err != nil {
 		return err
@@ -96,6 +112,6 @@ func run(cfg Config) error {
 		})
 	})
 
-	log.Printf("Server started on port %s", cfg.Port)
-	return http.ListenAndServe(":"+cfg.Port, r)
+	log.Printf("Server started on port %s", "8090")
+	return http.ListenAndServe(":8090", r)
 }

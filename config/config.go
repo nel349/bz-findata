@@ -2,6 +2,10 @@ package config
 
 import (
 	"context"
+	"log"
+	"os"
+
+	awslocal "github.com/nel349/bz-findata/pkg/aws"
 	"github.com/sethvargo/go-envconfig"
 )
 
@@ -10,6 +14,11 @@ type Config struct {
 	Exchange ExchangeConfig `env:",prefix=EXCHANGE_,required"`
 	Database DatabaseConfig `env:",prefix=DB_,required"`
 	Logger   LoggerConfig   `env:",prefix=LOGGER_"`
+}
+
+// AnalysisConfig for analysis configuration
+type AnalysisConfig struct {
+	Database DatabaseConfig `env:",prefix=DB_,required"`
 }
 
 // LoggerConfig for logger configuration
@@ -43,6 +52,38 @@ func NewConfig(ctx context.Context) (*Config, error) {
 	if err := envconfig.Process(ctx, &cfg); err != nil {
 		return nil, err
 	}
-
+	setDBPassword(&cfg);
 	return &cfg, nil
+}
+
+func NewAnalysisConfig(ctx context.Context) (*AnalysisConfig, error) {
+	var cfg AnalysisConfig
+
+	if err := envconfig.Process(ctx, &cfg); err != nil {
+		return nil, err
+	}
+	setDBPassword(&cfg)
+	return &cfg, nil
+}
+
+func setDBPassword(cfg interface{}) {
+    var dbConfig *DatabaseConfig
+    switch c := cfg.(type) {
+    case *Config:
+        dbConfig = &c.Database
+    case *AnalysisConfig:
+        dbConfig = &c.Database
+    default:
+        log.Fatal("unsupported config type")
+    }
+
+    if os.Getenv("IS_LOCAL") == "true" {
+        dbConfig.Password = os.Getenv("DB_PASSWORD")
+    } else {
+        dbSecret, err := awslocal.GetDefaultDBSecret()
+        if err != nil {
+            log.Fatalf("failed to retrieve DB secret: %v", err)
+        }
+        dbConfig.Password = dbSecret.DB_PASSWORD
+    }
 }

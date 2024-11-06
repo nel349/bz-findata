@@ -13,33 +13,35 @@ import (
 )
 
 type AwsSecret struct {
-	COINBASE_WS_API_KEY string
-	COINBASE_WS_API_SECRET string
+	COINBASE_WS_API_KEY        string
+	COINBASE_WS_API_SECRET     string
 	COINBASE_WS_API_PASSPHRASE string
-	SUPABASE_URL string
-	SERVICE_ROLE_KEY string
+	SUPABASE_URL               string
+	SERVICE_ROLE_KEY           string
 }
 
-func GetAwsSecret() (AwsSecret, error) {
-	secretName := "prod/supabase/coinbase"
-	region := "us-east-2"
+type AwsDBSecret struct {
+	DB_HOST     string
+	DB_USER     string `json:"username"`
+	DB_PASSWORD string `json:"password"`
+	DB_BASE     string
+}
 
-	// Add timeout to context
+func GetAwsSecret[T any](secretName string, region string) (T, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Check if we have environment credentials
 	if os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "" {
 		fmt.Println("AWS credentials not found in environment")
 	}
 
 	cfg, err := config.LoadDefaultConfig(ctx,
-        config.WithRegion(region),
-        // config.WithClientLogMode(aws.LogSigning|aws.LogRetries),
-    )
+		config.WithRegion(region),
+	)
 
 	if err != nil {
-		return AwsSecret{}, fmt.Errorf("unable to load SDK config: %w", err)
+		var empty T
+		return empty, fmt.Errorf("unable to load SDK config: %w", err)
 	}
 
 	svc := secretsmanager.NewFromConfig(cfg)
@@ -50,16 +52,28 @@ func GetAwsSecret() (AwsSecret, error) {
 
 	result, err := svc.GetSecretValue(context.TODO(), input)
 	if err != nil {
-		return AwsSecret{}, err
+		var empty T
+		return empty, err
 	}
 
-	// fmt.Println("Secret retrieved successfully", "secret", *result.SecretString)
-
-	var secret AwsSecret
+	var secret T
 	err = json.Unmarshal([]byte(*result.SecretString), &secret)
 	if err != nil {
-		return AwsSecret{}, err
+		var empty T
+		return empty, err
 	}
 
 	return secret, nil
+}
+
+func GetDefaultCoinbaseSecret() (AwsSecret, error) {
+	secretName := "prod/supabase/coinbase"
+	region := "us-east-2"
+	return GetAwsSecret[AwsSecret](secretName, region)
+}
+
+func GetDefaultDBSecret() (AwsDBSecret, error) {
+	secretName := "rds!db-78e7999e-5cdb-40a8-9a31-f5b15afbc492"
+	region := "us-east-2"
+	return GetAwsSecret[AwsDBSecret](secretName, region)
 }

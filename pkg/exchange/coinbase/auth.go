@@ -55,7 +55,7 @@ func GetWSCredentials() (string, string, string) {
     // wsApiSecret := os.Getenv("COINBASE_WS_API_SECRET")
     // wsApiPassphrase := os.Getenv("COINBASE_WS_API_PASSPHRASE")
 
-	secret, err := awslocal.GetAwsSecret()
+	secret, err := awslocal.GetDefaultCoinbaseSecret()
 	if err != nil {
 		fmt.Println("Failed to retrieve secret", err)
 	}

@@ -6,6 +6,7 @@ services:
       context: .
       dockerfile: cmd/app/Dockerfile
     environment:
+      IS_LOCAL: "true"
       # logger
       LOGGER_CALLER: 0
       LOGGER_STACKTRACE: 1
@@ -71,6 +72,7 @@ services:
     env_file:
       - env.list
     environment:
+      IS_LOCAL: "true"
       DB_HOST: mysql:3306
       DB_USER: root
       DB_PASSWORD: root

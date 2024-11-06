@@ -14,7 +14,6 @@
           "environment": [
               { "name": "DB_HOST", "value": "database-1.ct8iscmes4ms.us-east-2.rds.amazonaws.com:3306" },
               { "name": "DB_USER", "value": "root" },
-              { "name": "DB_PASSWORD", "value": "5FjdTI<p[:QD7)rf11ct3.hjMRN~" },
               { "name": "DB_BASE", "value": "findata" },
               {
                   "name": "EXCHANGE_URL",
@@ -47,7 +46,6 @@
           "environment": [
               { "name": "DB_HOST", "value": "database-1.ct8iscmes4ms.us-east-2.rds.amazonaws.com:3306" },
               { "name": "DB_USER", "value": "root" },
-              { "name": "DB_PASSWORD", "value": "5FjdTI<p[:QD7)rf11ct3.hjMRN~" },
               { "name": "DB_BASE", "value": "findata" },
               {
                 "name": "EXCHANGE_URL",

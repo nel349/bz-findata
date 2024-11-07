@@ -108,7 +108,7 @@ func (c *client) MonitorHeartbeat(ctx context.Context, timeout time.Duration) {
 				fmt.Printf("Reconnection attempts: %d\n", c.reconnectAttempts)
 
 				// Add backoff between reconnection attempts
-				backoff := time.Duration(c.reconnectAttempts+1) * time.Second
+				backoff := time.Duration(1) * time.Second // TODO: make it dynamic based on attempts
 				time.Sleep(backoff)
 
 				if err := c.reconnect(ctx, c.cfg); err != nil {

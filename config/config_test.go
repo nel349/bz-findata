@@ -7,6 +7,23 @@ import (
 )
 
 func TestNewConfig(t *testing.T) {
+	t.Setenv("IS_LOCAL", "true") // Local environment; Prevents from using AWS secrets
+    t.Setenv("DB_PASSWORD", "a2s_kjlasjd")
+    
+    // Set other required env vars
+    t.Setenv("EXCHANGE_URL", "wss://ws-feed.exchange.coinbase.com")
+    t.Setenv("EXCHANGE_ORIGIN", "https://coinbase.com")
+    t.Setenv("EXCHANGE_SYMBOLS", "ETH-BTC,BTC-USD,BTC-EUR")
+    t.Setenv("EXCHANGE_CHANNELS", "ticker")
+    t.Setenv("DB_HOST", "localhost:3306")
+    t.Setenv("DB_USER", "test_mysql")
+    t.Setenv("DB_BASE", "test")
+
+	// Logger
+	t.Setenv("LOGGER_CALLER", "false")
+	t.Setenv("LOGGER_STACKTRACE", "true")
+	t.Setenv("LOGGER_LEVEL", "debug")
+
 	type args struct {
 		ctx context.Context
 	}

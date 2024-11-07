@@ -38,6 +38,9 @@ docker-compose-down: ## Stop all services
 clean: ## Clean all built images
 	docker compose down --rmi all
 
+mysql-up: ## Run mysql service
+	docker compose up mysql
+
 # Development commands
 deps: ## Download dependencies
 	go mod download && go mod tidy

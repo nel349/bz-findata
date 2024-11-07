@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/nel349/bz-findata/config"
 	"github.com/nel349/bz-findata/internal/app/usecase"
@@ -105,6 +106,9 @@ func (c *client) Run(ctx context.Context) error {
 	// Subscribe to heartbeats
 	c.conn.SubscribeToHeartbeats(ctx)
 
+	// monitor heartbeat
+	go c.conn.MonitorHeartbeat(ctx, 10*time.Second)
+
 	// writers
 	for _, symbol := range c.products {
 		g.Go(func() error {
@@ -200,6 +204,8 @@ func (c *client) responseReader(symbol string, hMap map[string]chan entity.Messa
 				hMap[symbol] <- entity.Message{Order: order}
 				mu.Unlock()
 			case *coinbase.HeartbeatResponse:
+				// update heartbeat
+				c.conn.UpdateHeartbeat()
 				heartbeat, err := r.ToHeartbeat()
 				if err != nil {
 					c.logger.Error(err)

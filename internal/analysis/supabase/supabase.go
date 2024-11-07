@@ -19,7 +19,7 @@ func NewSupabaseRepository() *supabaseRepo {
 	// projectURL := os.Getenv("SUPABASE_URL")
 	// serviceRoleKey := os.Getenv("SERVICE_ROLE_KEY")
 
-	secret, err := awslocal.GetAwsSecret()
+	secret, err := awslocal.GetDefaultCoinbaseSecret()
 	if err != nil {
 		fmt.Println("Failed to retrieve secret", err)
 	}

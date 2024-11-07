@@ -2,122 +2,116 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"time"
+	"os/signal"
+	"syscall"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/nel349/bz-findata/config"
 	"github.com/nel349/bz-findata/internal/analysis"
 	"github.com/nel349/bz-findata/internal/analysis/database"
+	"github.com/nel349/bz-findata/internal/analysis/handlers"
+	"github.com/nel349/bz-findata/internal/analysis/infrastructure/scheduler"
 	"github.com/nel349/bz-findata/internal/analysis/supabase"
+	"github.com/nel349/bz-findata/internal/analysis/task"
+	"github.com/robfig/cron/v3"
 )
 
-func hello(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "hello\n")
-}
-
-func headers(w http.ResponseWriter, r *http.Request) {
-	for name, headers := range r.Header {
-		for _, h := range headers {
-			fmt.Fprintf(w, "%v: %v\n", name, h)
-		}
-	}
+type ScheduledTask struct {
+	ID       cron.EntryID `json:"id"`
+	Schedule string       `json:"schedule"`
+	Hours    int          `json:"hours"`
+	Limit    int          `json:"limit"`
 }
 
 func main() {
-	ctx := context.Background()
+	// var dbPassword string
 
-	// Initialize database connection
+	// Check if we're running locally (you can set this env var in docker-compose)
+	// if os.Getenv("IS_LOCAL") == "true" {
+	//     dbPassword = os.Getenv("DB_PASSWORD")
+	// } else {
+	//     // Get from AWS Secrets Manager
+	//     dbSecret, err := awslocal.GetDefaultDBSecret()
+	//     if err != nil {
+	//         log.Fatalf("Failed to retrieve DB secret: %v", err)
+	//     }
+	//     dbPassword = dbSecret.DB_PASSWORD
+
+	// 	// log.Println("DB Password:", dbPassword) // TODO: remove
+	// 	// // kill process
+	// 	// os.Exit(0)
+	// }
+
+	ctx, cancel := signal.NotifyContext(context.TODO(), os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
+	go func() {
+		<-ctx.Done()
+		cancel()
+	}()
+
+	cfg, err := config.NewAnalysisConfig(ctx)
+	if err != nil {
+		log.Fatalf("failed config init: %v", err)
+	}
+
+	// Setup dependencies
+	if err := run(cfg); err != nil {
+		log.Fatalf("Application failed to start: %v", err)
+	}
+}
+
+func run(cfg *config.AnalysisConfig) error {
+	// Initialize dependencies
 	db, err := database.NewConnection(
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_BASE"),
+		cfg.Database.Host,
+		cfg.Database.User,
+		cfg.Database.Password,
+		cfg.Database.Base,
 	)
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		return err
 	}
 	defer db.Close()
 
-	// Initialize supabase client
+	// Initialize services
 	supabaseRepo := supabase.NewSupabaseRepository()
-	// Initialize analysis service
 	analysisService := analysis.NewService(db, supabaseRepo.Client)
 
-	fmt.Println("Starting analysis app...")
+	// Initialize handlers
+	orderHandler := handlers.NewOrderHandler(analysisService)
 
-	// Example: Get largest orders in the last N hours
-	hours := 24
-	limit := 10
-	largestOrders, err := analysisService.GetLargestReceivedOrdersInLastNHours(ctx, hours, limit)
-	if err != nil {
-		log.Fatalf("Failed to get largest orders: %v", err)
-	}
+	// Setup router
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 
-	fmt.Printf("Largest `received` type orders in the last %d hours:\n", hours)
-	for _, order := range largestOrders {
-		localTime := time.Unix(order.Timestamp/1e9, 0).Local().UTC()
-		location, err := time.LoadLocation("America/Denver")
-		if err != nil {
-			log.Fatalf("Failed to load location: %v", err)
-		}
-		fmt.Printf("Size: %f, Order ID: %s, Order Type: %s, Timestamp: %s, Product ID: %s, Price: %f\n",
-			order.Size,
-			order.OrderID,
-			order.Type,
-			localTime.In(location),
-			order.ProductID,
-			order.Price,
-		)
-	}
+	// Initialize task manager
+	taskService := task.NewService(analysisService)
+	taskManager := scheduler.NewTaskManager(taskService)
 
-	// uri := fmt.Sprintf("https://%s%s", requestHost, requestPath)
+	// Routes
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Route("/btc", func(r chi.Router) {
 
-	// jwt, err := auth.BuildJWT(uri)
+			// Largest orders and store in supabase
+			r.Get("/largest-received-orders", orderHandler.GetLargestReceivedOrders)
+			r.Get("/largest-open-orders", orderHandler.GetLargestOpenOrders)
+			r.Get("/largest-match-orders", orderHandler.GetLargestMatchOrders)
+			r.Post("/store-received-orders", orderHandler.StoreReceivedOrdersInSupabase)
+			r.Post("/store-match-orders", orderHandler.StoreMatchOrdersInSupabase)
 
-	// fmt.Println("JWT:", jwt)
-	// fmt.Println("URI:", uri)
-
-	// lets print the command with the jwt
-	// fmt.Printf("export JWT=%s\n", jwt)
-
-	// print curl command
-	// fmt.Printf("curl -X %s https://%s%s -H \"Authorization: Bearer %s\"\n", requestMethod, requestHost, requestPath, jwt)
-
-	// auth := coinbase.NewAuth()
-	// 	auth.GenerateSignature()
-
-	if err != nil {
-		fmt.Printf("error building jwt: %v", err)
-	}
-
-	// Message that the server is running
-	fmt.Println("Server is running on port 8090")
-
-	http.HandleFunc("/hello", hello)
-	http.HandleFunc("/headers", headers)
-
-	// get the largest received orders
-	http.HandleFunc("/btc/largest-received-orders", func(w http.ResponseWriter, r *http.Request) {
-		largestReceivedOrders, err := analysisService.GetLargestReceivedOrdersInLastNHours(ctx, 2, 10)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		json.NewEncoder(w).Encode(largestReceivedOrders)
+			// Scheduler endpoints
+			r.Route("/scheduler", func(r chi.Router) {
+				r.Post("/start", taskManager.StartTask)
+				r.Delete("/stop/{taskID}", taskManager.StopTask)
+				r.Get("/tasks", taskManager.ListTasks)
+			})
+		})
 	})
 
-	// get the largest open orders
-	http.HandleFunc("/btc/largest-open-orders", func(w http.ResponseWriter, r *http.Request) {
-		largestOpenOrders, err := analysisService.GetLargestOpenOrdersInLastNHours(ctx, 24, 100)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		json.NewEncoder(w).Encode(largestOpenOrders)
-	})
-
-	http.ListenAndServe(":8090", nil)
+	log.Printf("Server started on port %s", "8090")
+	return http.ListenAndServe(":8090", r)
 }

@@ -27,7 +27,7 @@ func Run(ctx context.Context, cfg *config.Config) {
 	defer dbClient.CloseConnect()
 
 	// exchange
-	exchangeClient, err := coinbase.NewCoinbaseClient(cfg.Exchange.Url, cfg.Exchange.Protocol, cfg.Exchange.Origin)
+	exchangeClient, err := coinbase.NewCoinbaseClient(cfg)
 	if err != nil {
 		loggerProvider.Fatal(err)
 	}

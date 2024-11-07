@@ -42,6 +42,13 @@ type DoneOrder struct {
 	Reason        string  `json:"reason" db:"reason"`
 }
 
+type MatchOrder struct {
+	Order
+	Size          float64 `json:"size" db:"size"`
+	RemainingSize float64 `json:"remaining_size" db:"remaining_size"`
+	Side          string  `json:"side" db:"side"`
+}
+
 func NewService(db *sqlx.DB, supabaseClient *supabase.Client) *Service {
 	return &Service{db: db, supabaseClient: supabaseClient}
 }
@@ -60,22 +67,6 @@ func (s *Service) GetLargestReceivedOrdersInLastNHours(ctx context.Context, hour
 	if err != nil {
 		log.Println("error selecting orders from db", err)
 	}
-	// Convert timestamps for Supabase compatibility
-	supabaseOrders := make([]ReceivedOrder, len(orders))
-	for i, order := range orders {
-		supabaseOrders[i] = order
-		
-        // Convert nanoseconds to seconds for Supabase
-        unixSeconds := order.Timestamp / 1e9
-		supabaseOrders[i].Timestamp = unixSeconds
-	}
-
-	// Let's save to supabase 
-	_, err = s.supabaseClient.From("orders").Insert(supabaseOrders, false, "", "", "").ExecuteTo(&supabaseOrders)
-	if err != nil {
-		log.Println("error inserting orders to supabase", err)
-	}
-
 	return orders, err
 }
 
@@ -92,4 +83,72 @@ func (s *Service) GetLargestOpenOrdersInLastNHours(ctx context.Context, hours in
 	var orders []OpenOrder
 	err := s.db.SelectContext(ctx, &orders, query, time.Now().Add(-time.Duration(hours)*time.Hour).UnixNano(), limit)
 	return orders, err
+}
+
+// Get the largest match orders in last N hours
+func (s *Service) GetLargestMatchOrdersInLastNHours(ctx context.Context, hours, limit int) ([]MatchOrder, error) {
+
+	query := `
+		SELECT order_id, type, product_id, price, remaining_size, side, timestamp, size
+		FROM orders
+		WHERE timestamp > ?
+		AND type = 'match'
+		ORDER BY size DESC
+		LIMIT ?
+	`
+	var orders []MatchOrder
+	err := s.db.SelectContext(ctx, &orders, query, time.Now().Add(-time.Duration(hours)*time.Hour).UnixNano(), limit)
+
+	return orders, err
+}
+
+// Generic store method that handles different order types
+func (s *Service) storeOrdersInSupabase(orders interface{}, tableName string) error {
+    // Store in Supabase with the specified table
+    _, err := s.supabaseClient.From(tableName).Insert(orders, false, "", "", "").ExecuteTo(&orders)
+    if err != nil {
+        log.Printf("error inserting orders to supabase table %s: %v", tableName, err)
+        return err
+    }
+    return nil
+}
+
+// Helper methods for different order types
+func (s *Service) StoreReceivedOrdersInSupabase(ctx context.Context, hours int, limit int) error {
+    orders, err := s.GetLargestReceivedOrdersInLastNHours(ctx, hours, limit)
+    if err != nil {
+        return err
+    }
+    
+    // Convert timestamps for Supabase compatibility
+    for i := range orders {
+        orders[i].Timestamp = orders[i].Timestamp / 1e9
+    }
+    return s.storeOrdersInSupabase(orders, "orders")
+}
+
+func (s *Service) StoreMatchOrdersInSupabase(ctx context.Context, hours int, limit int) error {
+    orders, err := s.GetLargestMatchOrdersInLastNHours(ctx, hours, limit)
+    if err != nil {
+        return err
+    }
+    
+    // Convert timestamps for Supabase compatibility
+    for i := range orders {
+        orders[i].Timestamp = orders[i].Timestamp / 1e9
+    }
+    return s.storeOrdersInSupabase(orders, "orders")
+}
+
+func (s *Service) StoreOpenOrdersInSupabase(ctx context.Context, hours int, limit int) error {
+    orders, err := s.GetLargestOpenOrdersInLastNHours(ctx, hours, limit)
+    if err != nil {
+        return err
+    }
+    
+    // Convert timestamps for Supabase compatibility
+    for i := range orders {
+        orders[i].Timestamp = orders[i].Timestamp / 1e9
+    }
+    return s.storeOrdersInSupabase(orders, "orders")
 }

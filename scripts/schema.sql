@@ -1,3 +1,8 @@
+-- Log initialization start
+SELECT 'Initializing database schema...' as '';
+
+use findata;
+
 CREATE TABLE IF NOT EXISTS `ticks`
 (
     `timestamp` bigint unsigned NOT NULL,
@@ -24,6 +29,9 @@ CREATE TABLE IF NOT EXISTS `orders`
     `sequence` bigint unsigned NOT NULL,
     `remaining_size` float NULL,
     `reason` varchar(64) NULL,
+    `trade_id` BIGINT NULL,
+    `maker_order_id` varchar(64) NULL,
+    `taker_order_id` varchar(64) NULL,
     CONSTRAINT orders_pk
         PRIMARY KEY (`timestamp`, `product_id`, `type`, `sequence`)
 ) ENGINE = InnoDB;

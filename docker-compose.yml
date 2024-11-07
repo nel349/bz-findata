@@ -20,7 +20,7 @@ services:
       EXCHANGE_URL: wss://ws-feed.exchange.coinbase.com
       EXCHANGE_ORIGIN: https://coinbase.com
       EXCHANGE_PROTOCOL:
-      EXCHANGE_SYMBOLS: ETH-USD, BTC-USD
+      EXCHANGE_SYMBOLS: ETH-USD,BTC-USD
       EXCHANGE_CHANNELS: full
       # aws
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}

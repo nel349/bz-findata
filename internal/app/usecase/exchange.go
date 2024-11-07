@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/nel349/bz-findata/internal/app/repository"
 	"github.com/nel349/bz-findata/pkg/entity"
@@ -66,8 +65,8 @@ func (e *exchangeService) shouldProcessOrder(order *entity.Order) bool {
 
 func (e *exchangeService) ProcessStream(ctx context.Context, ch <-chan entity.Message) error {
 
-	ticker := time.NewTicker(5 * time.Second)
-	defer ticker.Stop()
+	// ticker := time.NewTicker(5 * time.Second)
+	// defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
@@ -116,8 +115,8 @@ func (e *exchangeService) ProcessStream(ctx context.Context, ch <-chan entity.Me
 			default:
 				e.logger.Info("Unknown message type")
 			}
-		case <-ticker.C:
-			e.logger.Info("Still alive, waiting for data")
+		// case <-ticker.C:
+		// 	e.logger.Info("Still alive, waiting for data")
 		}
 	}
 }

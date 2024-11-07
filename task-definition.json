@@ -20,7 +20,7 @@
                   "value": "wss://ws-feed.exchange.coinbase.com"
               },
               { "name": "EXCHANGE_ORIGIN", "value": "https://coinbase.com" },
-              { "name": "EXCHANGE_SYMBOLS", "value": "ETH-USD" },
+              { "name": "EXCHANGE_SYMBOLS", "value": "ETH-USD,BTC-USD" },
               { "name": "EXCHANGE_CHANNELS", "value": "full" }
           ],
           "logConfiguration": {

@@ -20,6 +20,9 @@ build-app: build-base ## Build only main app
 build-analysis: build-base ## Build only analysis app
 	docker build --platform linux/amd64 -t analysis-app -f cmd/analysis/Dockerfile .
 
+build-dex: build-base ## Build only dex app
+	docker build --platform linux/amd64 -t dex-app -f cmd/dex/Dockerfile .
+
 # Docker commands
 docker-compose-up: ## Run all services
 	docker compose up
@@ -31,6 +34,10 @@ app-up: build-app ## Run only main app
 analysis-up: build-analysis ## Run only analysis app
 	@echo "Running analysis app and mysql services..."
 	docker compose up analysis_app mysql
+
+dex-up: build-dex ## Run only dex app
+	@echo "Running dex app and mysql services..."
+	docker compose up dex_app mysql
 
 docker-compose-down: ## Stop all services
 	docker compose down

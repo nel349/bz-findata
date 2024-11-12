@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
@@ -15,6 +14,9 @@ import (
 const (
 	// Uniswap V2 Router address
 	UniswapRouterAddress = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+
+	// Uniswap V3 Router address
+	UniswapV3RouterAddress = "0xE592427A0AEce92De3Edee1F18E0157C05861564"
 	
 	// Method signatures for swaps
 	SwapExactETHForTokens = "0x7ff36ab5"
@@ -59,39 +61,39 @@ func processBlock(client *ethclient.Client, header *types.Header) {
 	fmt.Printf("Processing block: %d\n", block.Number().Uint64())
 
 	// Process each transaction in the block
-	for _, tx := range block.Transactions() {
-		// Skip if transaction has no recipient
-		if tx.To() == nil {
-			continue
-		}
+    for _, tx := range block.Transactions() {
+        if tx.To() == nil {
+            continue
+        }
 
-		// Check if transaction is to Uniswap Router
-		if strings.EqualFold(tx.To().Hex(), UniswapRouterAddress) {
-			input := hexutil.Encode(tx.Data())
-			
-			// Check if transaction is a swap
-			if strings.HasPrefix(input, SwapExactETHForTokens) || 
-			   strings.HasPrefix(input, SwapExactETHForTokensSupportingFee) {
-				
-				// Get sender address
-				from, err := types.Sender(types.LatestSignerForChainID(tx.ChainId()), tx)
-				if err != nil {
-					log.Printf("Error getting sender: %v", err)
-					continue
-				}
+        toAddress := strings.ToLower(tx.To().Hex())
+        
+        // Check if transaction is to either Uniswap Router
+        if toAddress == strings.ToLower(UniswapRouterAddress) || 
+           toAddress == strings.ToLower(UniswapV3RouterAddress) {
+            
+            from, err := types.Sender(types.LatestSignerForChainID(tx.ChainId()), tx)
+            if err != nil {
+                log.Printf("Error getting sender: %v", err)
+                continue
+            }
 
-				// Convert Wei to ETH
-				ethValue := new(big.Float).Quo(
-					new(big.Float).SetInt(tx.Value()), 
-					new(big.Float).SetFloat64(1e18),
-				)
+            ethValue := new(big.Float).Quo(
+                new(big.Float).SetInt(tx.Value()), 
+                new(big.Float).SetFloat64(1e18),
+            )
 
-				fmt.Println("-----------------------------------------------------")
-				fmt.Printf("Swap Transaction Hash: %s\n", tx.Hash().Hex())
-				fmt.Printf("From: %s\n", from.Hex())
-				fmt.Printf("Value: %f ETH\n", ethValue)
-				fmt.Println("-----------------------------------------------------")
-			}
-		}
-	}
+            version := "V2"
+            if toAddress == strings.ToLower(UniswapV3RouterAddress) {
+                version = "V3"
+            }
+
+            fmt.Println("-----------------------------------------------------")
+            fmt.Printf("Uniswap %s Transaction\n", version)
+            fmt.Printf("Transaction Hash: %s\n", tx.Hash().Hex())
+            fmt.Printf("From: %s\n", from.Hex())
+            fmt.Printf("Value: %f ETH\n", ethValue)
+            fmt.Println("-----------------------------------------------------")
+        }
+    }
 }

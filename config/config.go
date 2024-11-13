@@ -21,6 +21,11 @@ type AnalysisConfig struct {
 	Database DatabaseConfig `env:",prefix=DB_,required"`
 }
 
+// DexConfig for dex configuration
+type DexConfig struct {
+	Database DatabaseConfig `env:",prefix=DB_,required"`
+}
+
 // LoggerConfig for logger configuration
 type LoggerConfig struct {
 	DisableCaller     bool   `env:"CALLER,default=false"`
@@ -52,7 +57,7 @@ func NewConfig(ctx context.Context) (*Config, error) {
 	if err := envconfig.Process(ctx, &cfg); err != nil {
 		return nil, err
 	}
-	setDBPassword(&cfg);
+	setDBPassword(&cfg)
 	return &cfg, nil
 }
 
@@ -66,24 +71,36 @@ func NewAnalysisConfig(ctx context.Context) (*AnalysisConfig, error) {
 	return &cfg, nil
 }
 
-func setDBPassword(cfg interface{}) {
-    var dbConfig *DatabaseConfig
-    switch c := cfg.(type) {
-    case *Config:
-        dbConfig = &c.Database
-    case *AnalysisConfig:
-        dbConfig = &c.Database
-    default:
-        log.Fatal("unsupported config type")
-    }
+func NewDexConfig(ctx context.Context) (*DexConfig, error) {
+	var cfg DexConfig
 
-    if os.Getenv("IS_LOCAL") == "true" {
-        dbConfig.Password = os.Getenv("DB_PASSWORD")
-    } else {
-        dbSecret, err := awslocal.GetDefaultDBSecret()
-        if err != nil {
-            log.Fatalf("failed to retrieve DB secret: %v", err)
-        }
-        dbConfig.Password = dbSecret.DB_PASSWORD
-    }
+	if err := envconfig.Process(ctx, &cfg); err != nil {
+		return nil, err
+	}
+	setDBPassword(&cfg)
+	return &cfg, nil
+}
+
+func setDBPassword(cfg interface{}) {
+	var dbConfig *DatabaseConfig
+	switch c := cfg.(type) {
+	case *Config:
+		dbConfig = &c.Database
+	case *AnalysisConfig:
+		dbConfig = &c.Database
+	case *DexConfig:
+		dbConfig = &c.Database
+	default:
+		log.Fatal("unsupported config type")
+	}
+
+	if os.Getenv("IS_LOCAL") == "true" {
+		dbConfig.Password = os.Getenv("DB_PASSWORD")
+	} else {
+		dbSecret, err := awslocal.GetDefaultDBSecret()
+		if err != nil {
+			log.Fatalf("failed to retrieve DB secret: %v", err)
+		}
+		dbConfig.Password = dbSecret.DB_PASSWORD
+	}
 }

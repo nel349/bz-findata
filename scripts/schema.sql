@@ -35,3 +35,11 @@ CREATE TABLE IF NOT EXISTS `orders`
     CONSTRAINT orders_pk
         PRIMARY KEY (`timestamp`, `product_id`, `type`, `sequence`)
 ) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `swap_transactions`
+(
+    `tx_hash` varchar(66) NOT NULL,
+    `version` varchar(8) NOT NULL,
+    CONSTRAINT swap_transactions_pk
+        PRIMARY KEY (`tx_hash`)
+) ENGINE = InnoDB;

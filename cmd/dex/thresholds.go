@@ -10,7 +10,7 @@ const (
 
     // Base thresholds in native token decimals
     // These would need to be adjusted based on current market prices
-    EthereumSwapThreshold = 0.01   // ETH
+    EthereumSwapThreshold = 0   // ETH
     BaseSwapThreshold     = 0.5   // ETH
     ArbitrumSwapThreshold = 3.0   // ETH
     PolygonSwapThreshold  = 5000  // MATIC

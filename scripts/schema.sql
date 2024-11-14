@@ -40,6 +40,12 @@ CREATE TABLE IF NOT EXISTS `swap_transactions`
 (
     `tx_hash` varchar(66) NOT NULL,
     `version` varchar(8) NOT NULL,
+    `exchange` varchar(100) NOT NULL, -- dex name (e.g. uniswap)
+    `amount_in` varchar(100) NOT NULL,
+    `to_address` varchar(42) NOT NULL,
+    -- `deadline` datetime NOT NULL,
+    `token_path_from` varchar(42) NOT NULL,
+    `token_path_to` varchar(42) NOT NULL,
     CONSTRAINT swap_transactions_pk
         PRIMARY KEY (`tx_hash`)
 ) ENGINE = InnoDB;

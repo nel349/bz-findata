@@ -12,7 +12,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/jmoiron/sqlx"
 	"github.com/nel349/bz-findata/config"
 	"github.com/nel349/bz-findata/internal/dex/repository"
 	"github.com/nel349/bz-findata/pkg/database/mysql"
@@ -29,10 +28,6 @@ const (
 	SwapExactETHForTokens              = "0x7ff36ab5"
 	SwapExactETHForTokensSupportingFee = "0xb6f9de95"
 )
-
-type DexRepository struct {
-	db *sqlx.DB
-}
 
 func main() {
 	ctx, cancel := signal.NotifyContext(context.TODO(), os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
@@ -122,13 +117,14 @@ func processBlock(client *ethclient.Client, header *types.Header, dexRepositorie
 
 			threshold := GetThresholdForChain(tx.ChainId().Uint64())
 
-			if ethValue.Cmp(big.NewFloat(threshold)) >= 0 {
+			if ethValue.Cmp(big.NewFloat(threshold)) >= 0.0 {
 				fmt.Println("Threshold met")
 				// Save to database
 				dexRepositories.SaveSwap(context.Background(), tx, version)
 			}
 
 			fmt.Println("-----------------------------------------------------")
+			fmt.Println("Chain ID: ", tx.ChainId().Uint64())
 			fmt.Printf("Uniswap %s Transaction\n", version)
 			fmt.Printf("Transaction Hash: %s\n", tx.Hash().Hex())
 			fmt.Printf("From: %s\n", from.Hex())

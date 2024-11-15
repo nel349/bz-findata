@@ -7,7 +7,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/jmoiron/sqlx"
-	"github.com/nel349/bz-findata/internal/dex/eth"
+	"github.com/nel349/bz-findata/internal/dex/eth/defi_llama"
+	"github.com/nel349/bz-findata/internal/dex/eth/uniswap/decoder"
 	"github.com/nel349/bz-findata/pkg/entity"
 )
 
@@ -24,7 +25,12 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 	ctxReq, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
-	swapTransaction, err := eth.DecodeSwapExactTokensForTokens(tx.Data())
+	tokenInfo, err := defi_llama.GetTokenInfo(tx.Hash().Hex())
+	if err != nil {
+		return fmt.Errorf("failed to get token info: %w", err)
+	}
+
+	swapTransaction, err := decoder.DecodeSwap(tx.Data(), version, e.db, &tokenInfo)
 	if err != nil {
 		fmt.Println("Error decoding swap", "error", err)
 		return err
@@ -53,11 +59,11 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 			ctxReq,
 			query,
 			entity.SwapTransaction{
-				TxHash:        tx.Hash().Hex(),
-				Version:       version,
-				Exchange:      swapTransaction.Exchange,
-				AmountIn:      swapTransaction.AmountIn,
-				ToAddress:     swapTransaction.ToAddress,
+				TxHash:    tx.Hash().Hex(),
+				Version:   version,
+				Exchange:  swapTransaction.Exchange,
+				AmountIn:  swapTransaction.AmountIn,
+				ToAddress: swapTransaction.ToAddress,
 				// Deadline:      swapTransaction.Deadline,
 				TokenPathFrom: swapTransaction.TokenPathFrom,
 				TokenPathTo:   swapTransaction.TokenPathTo,

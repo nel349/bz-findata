@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/core/types"
@@ -22,8 +21,9 @@ func TestNewDexExchangeRepository(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewDexExchangeRepository(tt.args.db); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewDexExchangeRepository() = %v, want %v", got, tt.want)
+			got := NewDexExchangeRepository(tt.args.db)
+			if got.db != tt.want.db {
+				t.Errorf("NewDexExchangeRepository() = %+v, want %+v", got, tt.want)
 			}
 		})
 	}

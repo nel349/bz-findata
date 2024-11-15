@@ -49,3 +49,12 @@ CREATE TABLE IF NOT EXISTS `swap_transactions`
     CONSTRAINT swap_transactions_pk
         PRIMARY KEY (`tx_hash`)
 ) ENGINE = InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS `token_metadata` (
+    `address` varchar(42) NOT NULL,
+    `decimals` tinyint UNSIGNED NOT NULL,
+    `symbol` varchar(10),
+    `last_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`address`)
+) ENGINE = InnoDB;

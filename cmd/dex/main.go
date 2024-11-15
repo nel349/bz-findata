@@ -117,13 +117,14 @@ func processBlock(client *ethclient.Client, header *types.Header, dexRepositorie
 
 			threshold := GetThresholdForChain(tx.ChainId().Uint64())
 
+			fmt.Println("-----------------------------------------------------")
 			if ethValue.Cmp(big.NewFloat(threshold)) >= 0.0 {
 				fmt.Println("Threshold met")
 				// Save to database
 				dexRepositories.SaveSwap(context.Background(), tx, version)
 			}
 
-			fmt.Println("-----------------------------------------------------")
+
 			fmt.Println("Chain ID: ", tx.ChainId().Uint64())
 			fmt.Printf("Uniswap %s Transaction\n", version)
 			fmt.Printf("Transaction Hash: %s\n", tx.Hash().Hex())

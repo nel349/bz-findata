@@ -24,6 +24,16 @@ import (
 }
 */
 
+type DefiLlamaResponse struct {
+	Coins map[string]struct {
+		Decimals   uint8   `json:"decimals"`
+		Price      float64 `json:"price"`
+		Symbol     string  `json:"symbol"`
+		Timestamp  int64   `json:"timestamp"`
+		Confidence float64 `json:"confidence"`
+	} `json:"coins"`
+}
+
 type TokenInfo struct {
 	Address  string
 	Decimals uint8
@@ -53,12 +63,22 @@ func GetTokenInfo(tokenAddress string) (TokenInfo, error) {
 		return TokenInfo{}, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	// Parse the JSON response
-	var tokenInfo TokenInfo
-	err = json.Unmarshal(body, &tokenInfo)
-	if err != nil {
-		return TokenInfo{}, fmt.Errorf("failed to parse JSON: %w", err)
-	}
+    var response DefiLlamaResponse
+    err = json.Unmarshal(body, &response)
+    if err != nil {
+        return TokenInfo{}, fmt.Errorf("failed to parse JSON: %w", err)
+    }
 
-	return tokenInfo, nil
+    // Extract data from the response
+    key := fmt.Sprintf("ethereum:%s", tokenAddress)
+    if tokenData, exists := response.Coins[key]; exists {
+        return TokenInfo{
+            Address:  tokenAddress,
+            Decimals: tokenData.Decimals,
+            Symbol:   tokenData.Symbol,
+            Price:    tokenData.Price,
+        }, nil
+    }
+
+	return TokenInfo{}, fmt.Errorf("token data not found in response")
 }

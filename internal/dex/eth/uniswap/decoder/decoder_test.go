@@ -2,13 +2,11 @@ package decoder
 
 import (
 	"fmt"
-	"math"
 	"math/big"
 	"strings"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/nel349/bz-findata/internal/dex/eth/defi_llama"
 	"github.com/nel349/bz-findata/pkg/entity"
 )
 
@@ -17,17 +15,18 @@ func TestDecodeSwapExactTokensForTokens(t *testing.T) {
 
 	data := common.FromHex("0x38ed17390000000000000000000000000000000000000000000000000108d3a3aa9f11e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000056eb903b0d2e858905feb7f1f4ad73458243d5a900000000000000000000000000000000000000000000000000000000673576e70000000000000000000000000000000000000000000000000000000000000002000000000000000000000000699ec925118567b6475fe495327ba0a778234aaa000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
 	version := "v2"
-	tokenInfo := &defi_llama.TokenInfo{
-		Address:  "0x699Ec925118567b6475Fe495327ba0a778234AaA",
-		Decimals: 9,
-		Symbol:   "DUCKY",
-	}
+	// tokenInfo := &defi_llama.TokenInfo{
+	// 	Address:  "0x699Ec925118567b6475Fe495327ba0a778234AaA",
+	// 	Decimals: 9,
+	// 	Symbol:   "DUCKY",
+	// }
 
 	t.Run("Test DecodeSwapExactTokensForTokens", func(t *testing.T) {
-		swapTransaction, err := DecodeSwapExactTokensForTokens(data, version, tokenInfo)
+		// https://etherscan.io/tx/0x7c7accc2ce3f94da7d8304c61668713829a66f41fca42b61e684a89b77ce3f25
+		swapTransaction, err := DecodeSwapExactTokensForTokens(data, version)
 		checkSwapNotNil(t, err, swapTransaction)
 		expected := &entity.SwapTransaction{
-			AmountIn: 74542093.747294688,
+			AmountIn: big.NewInt(74542093747294688),
 			TokenPathFrom: "0x699Ec925118567b6475Fe495327ba0a778234AaA",
 			TokenPathTo:   "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
 		}
@@ -35,7 +34,7 @@ func TestDecodeSwapExactTokensForTokens(t *testing.T) {
 		fmt.Printf("Swap Transaction: %v\n", swapTransaction)
 
 		// Compare with small epsilon to account for floating point precision
-		if math.Abs(expected.AmountIn-swapTransaction.AmountIn) > 0.000001 {
+		if expected.AmountIn.Cmp(swapTransaction.AmountIn) != 0 {
 			t.Errorf("Amount In does not match expected value %v, got %v", expected.AmountIn, swapTransaction.AmountIn)
 		}
 
@@ -51,13 +50,13 @@ func TestDecodeSwapExactTokensForTokens(t *testing.T) {
 	t.Run("Test DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens", func(t *testing.T) {
 
 		data = common.FromHex("0x791ac9470000000000000000000000000000000000000000000422ca8b0a00a424ffffff00000000000000000000000000000000000000000000000007c28167a0c8547400000000000000000000000000000000000000000000000000000000000000a00000000000000000000000001ad0eb3d4e0b79c20f8b3af24b706ae3c8e6a201000000000000000000000000000000000000000000000000000000006736f2f30000000000000000000000000000000000000000000000000000000000000002000000000000000000000000f3c7cecf8cbc3066f9a87b310cebe198d00479ac000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
-		tokenInfo := &defi_llama.TokenInfo{
-			Address:  "0xF3c7CECF8cBC3066F9a87b310cEBE198d00479aC",
-			Decimals: 18,
-			Symbol:   "FEG",
-		}
+		// tokenInfo := &defi_llama.TokenInfo{
+		// 	Address:  "0xF3c7CECF8cBC3066F9a87b310cEBE198d00479aC",
+		// 	Decimals: 18,
+		// 	Symbol:   "FEG",
+		// }
 
-		swapTransaction, err := DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(data, version, tokenInfo)
+		swapTransaction, err := DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(data, version)
 
 		checkSwapNotNil(t, err, swapTransaction)
 		rawAmount, ok := new(big.Int).SetString("4999999999999999999999999", 10) // got expected amount from tenderly dev mode
@@ -67,19 +66,51 @@ func TestDecodeSwapExactTokensForTokens(t *testing.T) {
 			t.Fatal("failed to parse big.Int")
 		}
 
-		expectedAmountInFloat64, _ := new(big.Float).Quo(
-			new(big.Float).SetInt(rawAmount),
-			new(big.Float).SetFloat64(math.Pow(10, float64(tokenInfo.Decimals))),
-		).Float64()
+		// expectedAmountInFloat64, _ := new(big.Float).Quo(
+		// 	new(big.Float).SetInt(rawAmount),
+		// 	new(big.Float).SetFloat64(math.Pow(10, float64(tokenInfo.Decimals))),
+		// ).Float64()
 
 		expected := &entity.SwapTransaction{
-			AmountIn: expectedAmountInFloat64,
+			AmountIn: rawAmount,
 			TokenPathFrom: "0xF3c7CECF8cBC3066F9a87b310cEBE198d00479aC",
 			TokenPathTo:   "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
 		}
-		if math.Abs(expected.AmountIn-swapTransaction.AmountIn) > 0.000001 {
+		if expected.AmountIn.Cmp(swapTransaction.AmountIn) != 0 {
 			t.Errorf("Amount In does not match expected value %v, got %v", expected.AmountIn, swapTransaction.AmountIn)
 		}
+
+		if toLowerCaseHex(expected.TokenPathFrom) != toLowerCaseHex(swapTransaction.TokenPathFrom) {
+			t.Errorf("Token Path From does not match expected value %v, got %v", expected.TokenPathFrom, swapTransaction.TokenPathFrom)
+		}
+
+		if toLowerCaseHex(expected.TokenPathTo) != toLowerCaseHex(swapTransaction.TokenPathTo) {
+			t.Errorf("Token Path To does not match expected value %v, got %v", expected.TokenPathTo, swapTransaction.TokenPathTo)
+		}
+	})
+
+	t.Run("Test DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens", func(t *testing.T) {
+
+		// tx hash: 0xcf39e1501430f75f7ee041781b62592c6ba8a3749e5b5f3813f086023607dc1b
+		data = common.FromHex("0x5c11d7950000000000000000000000000000000000000000000ec068614236ee611fe9470000000000000000000000000000000000000000000000000766b47bedbc6e9d00000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000c54a957d2e1da5067c7ad32d38d3a2bc2524531c000000000000000000000000000000000000000000000000000001932e9df0b80000000000000000000000000000000000000000000000000000000000000002000000000000000000000000debcad12e9c454a7338b3ec0c8058eec688c79d5000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
+		// tokenInfo := &defi_llama.TokenInfo{
+		// 	Address:  "0xdEbcaD12E9C454a7338B3EC0c8058EeC688c79d5",
+		// 	Decimals: 18,
+		// 	Symbol:   "$PnutKing",
+		// }
+
+		swapTransaction, err := DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(data, version)
+		checkSwapNotNil(t, err, swapTransaction)
+
+		expected := &entity.SwapTransaction{
+			AmountIn: big.NewInt(74542093747294688),
+			TokenPathFrom: "0xdEbcaD12E9C454a7338B3EC0c8058EeC688c79d5",
+			TokenPathTo:   "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+		}
+
+		// if expected.AmountIn.Cmp(swapTransaction.AmountIn) != 0 {
+		// 	t.Errorf("Amount In does not match expected value %v, got %v", expected.AmountIn, swapTransaction.AmountIn)
+		// }
 
 		if toLowerCaseHex(expected.TokenPathFrom) != toLowerCaseHex(swapTransaction.TokenPathFrom) {
 			t.Errorf("Token Path From does not match expected value %v, got %v", expected.TokenPathFrom, swapTransaction.TokenPathFrom)

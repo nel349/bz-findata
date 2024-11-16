@@ -7,7 +7,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/jmoiron/sqlx"
-	"github.com/nel349/bz-findata/internal/dex/eth/defi_llama"
 	"github.com/nel349/bz-findata/internal/dex/eth/uniswap/decoder"
 	"github.com/nel349/bz-findata/pkg/entity"
 )
@@ -25,12 +24,7 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 	ctxReq, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
-	tokenInfo, err := defi_llama.GetTokenInfo(tx.Hash().Hex())
-	if err != nil {
-		return fmt.Errorf("failed to get token info: %w", err)
-	}
-
-	swapTransaction, err := decoder.DecodeSwap(tx.Data(), version, e.db, &tokenInfo)
+	swapTransaction, err := decoder.DecodeSwap(tx.Data(), version, e.db)
 	if err != nil {
 		fmt.Println("Error decoding swap", "error", err)
 		return err

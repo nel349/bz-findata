@@ -40,14 +40,23 @@ func DecodeSwap(data []byte, version string, db *sqlx.DB) (*entity.SwapTransacti
 		case v2.SwapExactTokensForTokens:
 			return DecodeSwapExactTokensForTokens(data, version)
 		case v2.SwapExactTokensForTokensSupportingFeeOnTransferTokens:
-			fmt.Println("not supported yet")
+			return DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(data, version)
 		case v2.SwapExactTokensForETHSupportingFeeOnTransferTokens:
 			return DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(data, version)
 			// Add more cases for other v2 swap methods as needed
+		default:
+			fmt.Println("not supported yet")
 		}
 
 	case v3.UniswapV3Method:
-		fmt.Println("not supported yet")
+		fmt.Println("V3 swap method")
+		// Lets do a switch for all the v3 swap methods
+		switch swapMethod {
+		case v3.ExactInputSingle:
+			return DecodeExactInputSingle(data, version)
+		default:
+			fmt.Println("not supported yet")
+		}
 	}
 
 	// Debug prints

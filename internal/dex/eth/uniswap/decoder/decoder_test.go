@@ -11,7 +11,7 @@ import (
 )
 
 // Test DecodeSwapExactTokensForTokens
-func TestDecodeSwapExactTokensForTokens(t *testing.T) {
+func TestDecodeSwapV2(t *testing.T) {
 
 	data := common.FromHex("0x38ed17390000000000000000000000000000000000000000000000000108d3a3aa9f11e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000056eb903b0d2e858905feb7f1f4ad73458243d5a900000000000000000000000000000000000000000000000000000000673576e70000000000000000000000000000000000000000000000000000000000000002000000000000000000000000699ec925118567b6475fe495327ba0a778234aaa000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
 	version := "v2"
@@ -124,6 +124,43 @@ func TestDecodeSwapExactTokensForTokens(t *testing.T) {
 
 		if toLowerCaseHex(expected.TokenPathTo) != toLowerCaseHex(swapTransaction.TokenPathTo) {
 			t.Errorf("Token Path To does not match expected value %v, got %v", expected.TokenPathTo, swapTransaction.TokenPathTo)
+		}
+	})
+
+}
+
+// V3 tests
+func TestDecodeSwapV3(t *testing.T) {
+	version := "v3"
+	// Lets do DecodeExactInputSingle test
+	t.Run("Test DecodeExactInputSingle", func(t *testing.T) {
+
+		data := common.FromHex("0x414bf389000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2000000000000000000000000ee2a03aa6dacf51c18679c516ad5283d8e7c26370000000000000000000000000000000000000000000000000000000000000bb8000000000000000000000000f5213a6a2f0890321712520b8048d9886c1a9900000000000000000000000000000000000000000000000000000000006736f0e40000000000000000000000000000000000000000000000000b9eafe9ee6f4000000000000000000000000000000000000000000000000000000019fe199f2e100000000000000000000000000000000000000000000000000000000000000000")
+		
+		swapTransaction, err := DecodeExactInputSingle(data, version)
+		checkSwapNotNil(t, err, swapTransaction)
+
+		expected := &entity.SwapTransaction{
+			AmountIn: big.NewInt(837300000000000000),
+			TokenPathFrom: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+			TokenPathTo:   "0xee2a03aa6dacf51c18679c516ad5283d8e7c2637",
+			ToAddress:     "0xf5213a6a2f0890321712520b8048d9886c1a9900",
+		}
+
+		if expected.AmountIn.Cmp(swapTransaction.AmountIn) != 0 {
+			t.Errorf("Amount In does not match expected value %v, got %v", expected.AmountIn, swapTransaction.AmountIn)
+		}
+
+		if toLowerCaseHex(expected.TokenPathFrom) != toLowerCaseHex(swapTransaction.TokenPathFrom) {
+			t.Errorf("Token Path From does not match expected value %v, got %v", expected.TokenPathFrom, swapTransaction.TokenPathFrom)
+		}
+
+		if toLowerCaseHex(expected.TokenPathTo) != toLowerCaseHex(swapTransaction.TokenPathTo) {
+			t.Errorf("Token Path To does not match expected value %v, got %v", expected.TokenPathTo, swapTransaction.TokenPathTo)
+		}
+
+		if expected.ToAddress != swapTransaction.ToAddress {
+			t.Errorf("To Address does not match expected value %v, got %v", expected.ToAddress, swapTransaction.ToAddress)
 		}
 	})
 

@@ -34,17 +34,30 @@ func DecodeSwap(tx *types.Transaction, version string) (*entity.SwapTransaction,
 		return nil, fmt.Errorf("unknown swap method: %s", methodID)
 	}
 
+	// Debug prints
+	fmt.Printf("Swap Method: %s\n", swapMethod)
+	fmt.Println("First 4 bytes (method signature):", methodID)
+
+	swapTransactionResult := &entity.SwapTransaction{
+		Value:     GetEthValue(tx.Value()),
+		AmountIn:  ConvertToFloat64("0"),
+		ToAddress: tx.To().Hex(),
+		Version:   version,
+		TxHash:    tx.Hash().Hex(),
+		Exchange:  "Uniswap",
+	}
+
 	switch swapMethod := swapMethod.(type) {
 	case v2.UniswapV2SwapMethod:
 		fmt.Println("V2 swap method")
 		// Lets do a switch for all the v2 swap methods
 		switch swapMethod {
 		case v2.SwapExactTokensForTokens:
-			return DecodeSwapExactTokensForTokens(data, version)
+			DecodeSwapExactTokensForTokens(data, version, swapTransactionResult)
 		case v2.SwapExactTokensForTokensSupportingFeeOnTransferTokens:
-			return DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(data, version)
+			DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
 		case v2.SwapExactTokensForETHSupportingFeeOnTransferTokens:
-			return DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(data, version)
+			DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
 			// Add more cases for other v2 swap methods as needed
 		default:
 			fmt.Println("not supported yet")
@@ -61,16 +74,7 @@ func DecodeSwap(tx *types.Transaction, version string) (*entity.SwapTransaction,
 		}
 	}
 
-	// Debug prints
-	fmt.Printf("Swap Method: %s\n", swapMethod)
-	fmt.Println("First 4 bytes (method signature):", methodID)
-
-	// If it is a non supported swap just return swap transaction with Eth input amount
-	return &entity.SwapTransaction{
-		Value:     GetEthValue(tx.Value()),
-		AmountIn:  ConvertToFloat64("0"),
-		ToAddress: tx.To().Hex(),
-	}, nil
+	return swapTransactionResult, nil
 }
 
 /*
@@ -88,7 +92,7 @@ MethodID: 0x38ed1739
 [6]:  000000000000000000000000699ec925118567b6475fe495327ba0a778234aaa
 [7]:  000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
 */
-func DecodeSwapExactTokensForTokens(data []byte, version string) (*entity.SwapTransaction, error) {
+func DecodeSwapExactTokensForTokens(data []byte, version string, swapTransactionResult *entity.SwapTransaction) (error) {
 	// Skip first 4 bytes (method ID)
 	data = data[4:]
 
@@ -136,14 +140,13 @@ func DecodeSwapExactTokensForTokens(data []byte, version string) (*entity.SwapTr
 	fmt.Printf("  From: 0x%s\n", tokenPathFrom)
 	fmt.Printf("  To: 0x%s\n", tokenPathTo)
 
-	return &entity.SwapTransaction{
-		AmountIn:     amountIn,
-		AmountOutMin: amountOutMin,
-		ToAddress:    toAddress,
-		// Deadline:      deadline.String(),
-		TokenPathFrom: tokenPathFrom,
-		TokenPathTo:   tokenPathTo,
-	}, nil
+	swapTransactionResult.AmountIn = amountIn
+	swapTransactionResult.AmountOutMin = amountOutMin
+	swapTransactionResult.ToAddress = toAddress
+	swapTransactionResult.TokenPathFrom = tokenPathFrom
+	swapTransactionResult.TokenPathTo = tokenPathTo
+
+	return nil
 }
 
 /*
@@ -170,7 +173,8 @@ MethodID: 0x791ac947
 func DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(
 	data []byte,
 	version string,
-) (*entity.SwapTransaction, error) {
+	swapTransactionResult *entity.SwapTransaction,
+) (error) {
 
 	data = data[4:]
 
@@ -190,11 +194,11 @@ func DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(
 	fmt.Printf("  From: 0x%s\n", tokenPathFrom)
 	fmt.Printf("  To: 0x%s\n", tokenPathTo)
 
-	return &entity.SwapTransaction{
-		AmountIn:      amountIn,
-		TokenPathFrom: tokenPathFrom,
-		TokenPathTo:   tokenPathTo,
-	}, nil
+	swapTransactionResult.AmountIn = amountIn
+	swapTransactionResult.TokenPathFrom = tokenPathFrom
+	swapTransactionResult.TokenPathTo = tokenPathTo
+
+	return nil
 }
 
 /*
@@ -225,7 +229,8 @@ MethodID: 0x5c11d795
 func DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(
 	data []byte,
 	version string,
-) (*entity.SwapTransaction, error) {
+	swapTransactionResult *entity.SwapTransaction,
+) (error) {
 	data = data[4:]
 
 	amountIn := ConvertToFloat64(new(big.Int).SetBytes(data[:32]).String())
@@ -238,9 +243,8 @@ func DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(
 	tokenPathFrom := fmt.Sprintf("0x%s", common.Bytes2Hex(data[192:224])[24:]) // First token in path
 	tokenPathTo := fmt.Sprintf("0x%s", common.Bytes2Hex(data[224:256])[24:])   // Second token in path
 
-	return &entity.SwapTransaction{
-		AmountIn:      amountIn,
-		TokenPathFrom: tokenPathFrom,
-		TokenPathTo:   tokenPathTo,
-	}, nil
+	swapTransactionResult.AmountIn = amountIn
+	swapTransactionResult.TokenPathFrom = tokenPathFrom
+	swapTransactionResult.TokenPathTo = tokenPathTo
+	return nil
 }

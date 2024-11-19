@@ -21,10 +21,12 @@ func TestDecodeSwapV2(t *testing.T) {
 	// 	Symbol:   "DUCKY",
 	// }
 
+	swapTransactionResult := &entity.SwapTransaction{}
+
 	t.Run("Test DecodeSwapExactTokensForTokens", func(t *testing.T) {
 		// https://etherscan.io/tx/0x7c7accc2ce3f94da7d8304c61668713829a66f41fca42b61e684a89b77ce3f25
-		swapTransaction, err := DecodeSwapExactTokensForTokens(data, version)
-		checkSwapNotNil(t, err, swapTransaction)
+		err := DecodeSwapExactTokensForTokens(data, version, swapTransactionResult)
+		checkSwapNotNil(t, err, swapTransactionResult)
 
 		expected := &entity.SwapTransaction{
 			AmountIn: ConvertToFloat64("74542093747294688"),
@@ -32,19 +34,19 @@ func TestDecodeSwapV2(t *testing.T) {
 			TokenPathTo:   "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
 		}
 
-		fmt.Printf("Swap Transaction: %v\n", swapTransaction)
+		fmt.Printf("Swap Transaction: %v\n", swapTransactionResult)
 
 		// Compare with small epsilon to account for floating point precision
-		if expected.AmountIn != swapTransaction.AmountIn {
-			t.Errorf("Amount In does not match expected value %v, got %v", expected.AmountIn, swapTransaction.AmountIn)
+		if expected.AmountIn != swapTransactionResult.AmountIn {
+			t.Errorf("Amount In does not match expected value %v, got %v", expected.AmountIn, swapTransactionResult.AmountIn)
 		}
 
-		if toLowerCaseHex(expected.TokenPathFrom) != toLowerCaseHex(swapTransaction.TokenPathFrom) {
-			t.Errorf("Token Path From does not match expected value %v, got %v", expected.TokenPathFrom, swapTransaction.TokenPathFrom)
+		if toLowerCaseHex(expected.TokenPathFrom) != toLowerCaseHex(swapTransactionResult.TokenPathFrom) {
+			t.Errorf("Token Path From does not match expected value %v, got %v", expected.TokenPathFrom, swapTransactionResult.TokenPathFrom)
 		}
 
-		if toLowerCaseHex(expected.TokenPathTo) != toLowerCaseHex(swapTransaction.TokenPathTo) {
-			t.Errorf("Token Path To does not match expected value %v, got %v", expected.TokenPathTo, swapTransaction.TokenPathTo)
+		if toLowerCaseHex(expected.TokenPathTo) != toLowerCaseHex(swapTransactionResult.TokenPathTo) {
+			t.Errorf("Token Path To does not match expected value %v, got %v", expected.TokenPathTo, swapTransactionResult.TokenPathTo)
 		}
 	})
 
@@ -57,9 +59,9 @@ func TestDecodeSwapV2(t *testing.T) {
 		// 	Symbol:   "FEG",
 		// }
 
-		swapTransaction, err := DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(data, version)
+		err := DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
 
-		checkSwapNotNil(t, err, swapTransaction)
+		checkSwapNotNil(t, err, swapTransactionResult)
 		rawAmount, ok := new(big.Int).SetString("4999999999999999999999999", 10) // got expected amount from tenderly dev mode
 		// https://dashboard.tenderly.co/tx/mainnet/0x708b5ce2f7a6e6bf95ed92206955afddfe226bbd1911ff31f1dc9604a25fd93d
 
@@ -77,16 +79,16 @@ func TestDecodeSwapV2(t *testing.T) {
 			TokenPathFrom: "0xF3c7CECF8cBC3066F9a87b310cEBE198d00479aC",
 			TokenPathTo:   "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
 		}
-		if expected.AmountIn != swapTransaction.AmountIn {
-			t.Errorf("Amount In does not match expected value %v, got %v", expected.AmountIn, swapTransaction.AmountIn)
+		if expected.AmountIn != swapTransactionResult.AmountIn {
+			t.Errorf("Amount In does not match expected value %v, got %v", expected.AmountIn, swapTransactionResult.AmountIn)
 		}
 
-		if toLowerCaseHex(expected.TokenPathFrom) != toLowerCaseHex(swapTransaction.TokenPathFrom) {
-			t.Errorf("Token Path From does not match expected value %v, got %v", expected.TokenPathFrom, swapTransaction.TokenPathFrom)
+		if toLowerCaseHex(expected.TokenPathFrom) != toLowerCaseHex(swapTransactionResult.TokenPathFrom) {
+			t.Errorf("Token Path From does not match expected value %v, got %v", expected.TokenPathFrom, swapTransactionResult.TokenPathFrom)
 		}
 
-		if toLowerCaseHex(expected.TokenPathTo) != toLowerCaseHex(swapTransaction.TokenPathTo) {
-			t.Errorf("Token Path To does not match expected value %v, got %v", expected.TokenPathTo, swapTransaction.TokenPathTo)
+		if toLowerCaseHex(expected.TokenPathTo) != toLowerCaseHex(swapTransactionResult.TokenPathTo) {
+			t.Errorf("Token Path To does not match expected value %v, got %v", expected.TokenPathTo, swapTransactionResult.TokenPathTo)
 		}
 	})
 
@@ -102,8 +104,8 @@ func TestDecodeSwapV2(t *testing.T) {
 		// 	Symbol:   "$PnutKing",
 		// }
 		
-		swapTransaction, err := DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(data, version)
-		checkSwapNotNil(t, err, swapTransaction)
+		err := DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
+		checkSwapNotNil(t, err, swapTransactionResult)
 
 		expected := &entity.SwapTransaction{
 			AmountIn: ConvertToFloat64("17833581308923813721794887"),
@@ -111,16 +113,16 @@ func TestDecodeSwapV2(t *testing.T) {
 			TokenPathTo:   "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
 		}
 
-		if expected.AmountIn != swapTransaction.AmountIn {
-			t.Errorf("Amount In does not match expected value %v, got %v", expected.AmountIn, swapTransaction.AmountIn)
+		if expected.AmountIn != swapTransactionResult.AmountIn {
+			t.Errorf("Amount In does not match expected value %v, got %v", expected.AmountIn, swapTransactionResult.AmountIn)
 		}
 
-		if toLowerCaseHex(expected.TokenPathFrom) != toLowerCaseHex(swapTransaction.TokenPathFrom) {
-			t.Errorf("Token Path From does not match expected value %v, got %v", expected.TokenPathFrom, swapTransaction.TokenPathFrom)
+		if toLowerCaseHex(expected.TokenPathFrom) != toLowerCaseHex(swapTransactionResult.TokenPathFrom) {
+			t.Errorf("Token Path From does not match expected value %v, got %v", expected.TokenPathFrom, swapTransactionResult.TokenPathFrom)
 		}
 
-		if toLowerCaseHex(expected.TokenPathTo) != toLowerCaseHex(swapTransaction.TokenPathTo) {
-			t.Errorf("Token Path To does not match expected value %v, got %v", expected.TokenPathTo, swapTransaction.TokenPathTo)
+		if toLowerCaseHex(expected.TokenPathTo) != toLowerCaseHex(swapTransactionResult.TokenPathTo) {
+			t.Errorf("Token Path To does not match expected value %v, got %v", expected.TokenPathTo, swapTransactionResult.TokenPathTo)
 		}
 	})
 

@@ -6,14 +6,16 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/jmoiron/sqlx"
+	"github.com/ethereum/go-ethereum/core/types"
+
 	// "github.com/nel349/bz-findata/internal/dex/eth/defi_llama"
-	"github.com/nel349/bz-findata/internal/dex/eth/uniswap/v2"
-	"github.com/nel349/bz-findata/internal/dex/eth/uniswap/v3"
+	v2 "github.com/nel349/bz-findata/internal/dex/eth/uniswap/v2"
+	v3 "github.com/nel349/bz-findata/internal/dex/eth/uniswap/v3"
 	"github.com/nel349/bz-findata/pkg/entity"
 )
 
-func DecodeSwap(data []byte, version string, db *sqlx.DB) (*entity.SwapTransaction, error) {
+func DecodeSwap(tx *types.Transaction, version string) (*entity.SwapTransaction, error) {
+	data := tx.Data()
 	methodID := fmt.Sprintf("%x", data[:4])
 
 	// Debug prints
@@ -62,7 +64,13 @@ func DecodeSwap(data []byte, version string, db *sqlx.DB) (*entity.SwapTransacti
 	// Debug prints
 	fmt.Printf("Swap Method: %s\n", swapMethod)
 	fmt.Println("First 4 bytes (method signature):", methodID)
-	return &entity.SwapTransaction{}, nil
+
+	// If it is a non supported swap just return swap transaction with Eth input amount
+	return &entity.SwapTransaction{
+		Value:     GetEthValue(tx.Value()),
+		AmountIn:  ConvertToFloat64("0"),
+		ToAddress: tx.To().Hex(),
+	}, nil
 }
 
 /*
@@ -84,9 +92,12 @@ func DecodeSwapExactTokensForTokens(data []byte, version string) (*entity.SwapTr
 	// Skip first 4 bytes (method ID)
 	data = data[4:]
 
+	// print method signature
+	fmt.Printf("Method Signature: %s\n", v2.SwapExactTokensForTokens)
+
 	// [0] amountIn (uint256)
 	fmt.Printf("Raw amountIn bytes: %x\n", data[:32])
-	amountIn := new(big.Int).SetBytes(data[:32])
+	amountIn := ConvertToFloat64(new(big.Int).SetBytes(data[:32]).String())
 	// fmt.Printf("Amount In: %v\n", amountIn)
 
 	// amountInDecimal := new(big.Float).Quo(
@@ -96,7 +107,7 @@ func DecodeSwapExactTokensForTokens(data []byte, version string) (*entity.SwapTr
 	// amountInFloat64, _ := amountInDecimal.Float64()
 
 	// [1] amountOutMin (uint256)
-	amountOutMin := new(big.Int).SetBytes(data[32:64])
+	amountOutMin := ConvertToFloat64(new(big.Int).SetBytes(data[32:64]).String())
 	// amountOutMinFloat64, _ := new(big.Float).Quo(
 	// 	new(big.Float).SetInt(amountOutMin),
 	// 	new(big.Float).SetFloat64(math.Pow(10, float64(tokenInfo.Decimals))),
@@ -135,27 +146,26 @@ func DecodeSwapExactTokensForTokens(data []byte, version string) (*entity.SwapTr
 	}, nil
 }
 
-
 /*
-	Function: swapExactTokensForETHSupportingFeeOnTransferTokens(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline)
+Function: swapExactTokensForETHSupportingFeeOnTransferTokens(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline)
 
-	MethodID: 0x791ac947
-	[0]:  0000000000000000000000000000000000000000000422ca8b0a00a424ffffff
-	[1]:  00000000000000000000000000000000000000000000000007c28167a0c85474
-	[2]:  00000000000000000000000000000000000000000000000000000000000000a0
-	[3]:  0000000000000000000000001ad0eb3d4e0b79c20f8b3af24b706ae3c8e6a201
-	[4]:  000000000000000000000000000000000000000000000000000000006736f2f3
-	[5]:  0000000000000000000000000000000000000000000000000000000000000002
-	[6]:  000000000000000000000000f3c7cecf8cbc3066f9a87b310cebe198d00479ac
-	[7]:  000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
-	[0]: 32 bytes - amountIn (uint256)
-	[1]: 32 bytes - amountOutMin (uint256)
-	[2]: 32 bytes - path array offset (uint256)
-	[3]: 32 bytes - to address (20 bytes + 12 bytes padding)
-	[4]: 32 bytes - deadline (uint256)
-	[5]: 32 bytes - path array length (uint256)
-	[6]: 32 bytes - first token address (20 bytes + 12 bytes padding)
-	[7]: 32 bytes - second token address (20 bytes + 12 bytes padding)
+MethodID: 0x791ac947
+[0]:  0000000000000000000000000000000000000000000422ca8b0a00a424ffffff
+[1]:  00000000000000000000000000000000000000000000000007c28167a0c85474
+[2]:  00000000000000000000000000000000000000000000000000000000000000a0
+[3]:  0000000000000000000000001ad0eb3d4e0b79c20f8b3af24b706ae3c8e6a201
+[4]:  000000000000000000000000000000000000000000000000000000006736f2f3
+[5]:  0000000000000000000000000000000000000000000000000000000000000002
+[6]:  000000000000000000000000f3c7cecf8cbc3066f9a87b310cebe198d00479ac
+[7]:  000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
+[0]: 32 bytes - amountIn (uint256)
+[1]: 32 bytes - amountOutMin (uint256)
+[2]: 32 bytes - path array offset (uint256)
+[3]: 32 bytes - to address (20 bytes + 12 bytes padding)
+[4]: 32 bytes - deadline (uint256)
+[5]: 32 bytes - path array length (uint256)
+[6]: 32 bytes - first token address (20 bytes + 12 bytes padding)
+[7]: 32 bytes - second token address (20 bytes + 12 bytes padding)
 */
 func DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(
 	data []byte,
@@ -164,16 +174,16 @@ func DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(
 
 	data = data[4:]
 
-	amountIn := new(big.Int).SetBytes(data[:32])
+	amountIn := ConvertToFloat64(new(big.Int).SetBytes(data[:32]).String())
 	// amountInFloat64, _ := new(big.Float).Quo(
 	// 	new(big.Float).SetInt(amountIn),
 	// 	new(big.Float).SetFloat64(math.Pow(10, float64(tokenInfo.Decimals))),
 	// ).Float64()
 
 	// [5] is where the path array starts (160 bytes from start)
-    // [6] and [7] are token addresses in the path
-    tokenPathFrom := fmt.Sprintf("0x%s", common.Bytes2Hex(data[192:224])[24:]) // First token in path
-    tokenPathTo := fmt.Sprintf("0x%s", common.Bytes2Hex(data[224:256])[24:])   // Second token in path
+	// [6] and [7] are token addresses in the path
+	tokenPathFrom := fmt.Sprintf("0x%s", common.Bytes2Hex(data[192:224])[24:]) // First token in path
+	tokenPathTo := fmt.Sprintf("0x%s", common.Bytes2Hex(data[224:256])[24:])   // Second token in path
 
 	fmt.Printf("Amount In: %v tokens\n", amountIn)
 	fmt.Printf("Token Path:\n")
@@ -181,7 +191,7 @@ func DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(
 	fmt.Printf("  To: 0x%s\n", tokenPathTo)
 
 	return &entity.SwapTransaction{
-		AmountIn: amountIn,
+		AmountIn:      amountIn,
 		TokenPathFrom: tokenPathFrom,
 		TokenPathTo:   tokenPathTo,
 	}, nil
@@ -200,16 +210,17 @@ MethodID: 0x5c11d795
 [5]:  0000000000000000000000000000000000000000000000000000000000000002
 [6]:  000000000000000000000000debcad12e9c454a7338b3ec0c8058eec688c79d5
 [7]:  000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
-{
-  "amountIn": "17833581308923813721794887",
-  "amountOutMin": "533312050252508829",
-  "path": [
-    "0xdebcad12e9c454a7338b3ec0c8058eec688c79d5",
-    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
-  ],
-  "to": "0xc54a957d2e1da5067c7ad32d38d3a2bc2524531c",
-  "deadline": "1731653923000"
-}
+
+	{
+	  "amountIn": "17833581308923813721794887",
+	  "amountOutMin": "533312050252508829",
+	  "path": [
+	    "0xdebcad12e9c454a7338b3ec0c8058eec688c79d5",
+	    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+	  ],
+	  "to": "0xc54a957d2e1da5067c7ad32d38d3a2bc2524531c",
+	  "deadline": "1731653923000"
+	}
 */
 func DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(
 	data []byte,
@@ -217,7 +228,7 @@ func DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(
 ) (*entity.SwapTransaction, error) {
 	data = data[4:]
 
-	amountIn := new(big.Int).SetBytes(data[:32])
+	amountIn := ConvertToFloat64(new(big.Int).SetBytes(data[:32]).String())
 	// amountInFloat64, _ := new(big.Float).Quo(
 	// 	new(big.Float).SetInt(amountIn),
 	// 	new(big.Float).SetFloat64(math.Pow(10, float64(fromTokenInfo.Decimals))),
@@ -228,7 +239,7 @@ func DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(
 	tokenPathTo := fmt.Sprintf("0x%s", common.Bytes2Hex(data[224:256])[24:])   // Second token in path
 
 	return &entity.SwapTransaction{
-		AmountIn: amountIn,
+		AmountIn:      amountIn,
 		TokenPathFrom: tokenPathFrom,
 		TokenPathTo:   tokenPathTo,
 	}, nil

@@ -25,8 +25,9 @@ func TestDecodeSwapV2(t *testing.T) {
 		// https://etherscan.io/tx/0x7c7accc2ce3f94da7d8304c61668713829a66f41fca42b61e684a89b77ce3f25
 		swapTransaction, err := DecodeSwapExactTokensForTokens(data, version)
 		checkSwapNotNil(t, err, swapTransaction)
+
 		expected := &entity.SwapTransaction{
-			AmountIn: big.NewInt(74542093747294688),
+			AmountIn: ConvertToFloat64("74542093747294688"),
 			TokenPathFrom: "0x699Ec925118567b6475Fe495327ba0a778234AaA",
 			TokenPathTo:   "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
 		}
@@ -34,7 +35,7 @@ func TestDecodeSwapV2(t *testing.T) {
 		fmt.Printf("Swap Transaction: %v\n", swapTransaction)
 
 		// Compare with small epsilon to account for floating point precision
-		if expected.AmountIn.Cmp(swapTransaction.AmountIn) != 0 {
+		if expected.AmountIn != swapTransaction.AmountIn {
 			t.Errorf("Amount In does not match expected value %v, got %v", expected.AmountIn, swapTransaction.AmountIn)
 		}
 
@@ -72,11 +73,11 @@ func TestDecodeSwapV2(t *testing.T) {
 		// ).Float64()
 
 		expected := &entity.SwapTransaction{
-			AmountIn: rawAmount,
+			AmountIn: ConvertToFloat64(rawAmount.String()),
 			TokenPathFrom: "0xF3c7CECF8cBC3066F9a87b310cEBE198d00479aC",
 			TokenPathTo:   "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
 		}
-		if expected.AmountIn.Cmp(swapTransaction.AmountIn) != 0 {
+		if expected.AmountIn != swapTransaction.AmountIn {
 			t.Errorf("Amount In does not match expected value %v, got %v", expected.AmountIn, swapTransaction.AmountIn)
 		}
 
@@ -103,18 +104,14 @@ func TestDecodeSwapV2(t *testing.T) {
 		
 		swapTransaction, err := DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(data, version)
 		checkSwapNotNil(t, err, swapTransaction)
-		expectedAmount, ok := new(big.Int).SetString("17833581308923813721794887", 10) // got expected amount from tenderly dev mode
-		if !ok {
-			t.Fatal("failed to parse big.Int")
-		}
 
 		expected := &entity.SwapTransaction{
-			AmountIn: expectedAmount,
+			AmountIn: ConvertToFloat64("17833581308923813721794887"),
 			TokenPathFrom: "0xdEbcaD12E9C454a7338B3EC0c8058EeC688c79d5",
 			TokenPathTo:   "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
 		}
 
-		if expected.AmountIn.Cmp(swapTransaction.AmountIn) != 0 {
+		if expected.AmountIn != swapTransaction.AmountIn {
 			t.Errorf("Amount In does not match expected value %v, got %v", expected.AmountIn, swapTransaction.AmountIn)
 		}
 
@@ -141,13 +138,13 @@ func TestDecodeSwapV3(t *testing.T) {
 		checkSwapNotNil(t, err, swapTransaction)
 
 		expected := &entity.SwapTransaction{
-			AmountIn: big.NewInt(837300000000000000),
+			AmountIn: ConvertToFloat64("837300000000000000"),
 			TokenPathFrom: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
 			TokenPathTo:   "0xee2a03aa6dacf51c18679c516ad5283d8e7c2637",
 			ToAddress:     "0xf5213a6a2f0890321712520b8048d9886c1a9900",
 		}
 
-		if expected.AmountIn.Cmp(swapTransaction.AmountIn) != 0 {
+		if expected.AmountIn != swapTransaction.AmountIn {
 			t.Errorf("Amount In does not match expected value %v, got %v", expected.AmountIn, swapTransaction.AmountIn)
 		}
 

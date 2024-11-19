@@ -24,7 +24,7 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 	ctxReq, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
-	swapTransaction, err := decoder.DecodeSwap(tx.Data(), version, e.db)
+	swapTransaction, err := decoder.DecodeSwap(tx, version)
 	if err != nil {
 		fmt.Println("Error decoding swap", "error", err)
 		return err

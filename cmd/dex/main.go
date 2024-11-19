@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math/big"
 	"os"
 	"os/signal"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	"github.com/nel349/bz-findata/config"
 	"github.com/nel349/bz-findata/internal/dex/repository"
 	"github.com/nel349/bz-findata/pkg/database/mysql"
+	"github.com/nel349/bz-findata/internal/dex/eth/uniswap/decoder"
 )
 
 const (
@@ -105,10 +105,7 @@ func processBlock(client *ethclient.Client, header *types.Header, dexRepositorie
 				continue
 			}
 
-			ethValue := new(big.Float).Quo(
-				new(big.Float).SetInt(tx.Value()),
-				new(big.Float).SetFloat64(1e18),
-			)
+			ethValue := decoder.GetEthValue(tx.Value())
 
 			version := "V2"
 			if toAddress == strings.ToLower(UniswapV3RouterAddress) {
@@ -118,7 +115,7 @@ func processBlock(client *ethclient.Client, header *types.Header, dexRepositorie
 			threshold := GetThresholdForChain(tx.ChainId().Uint64())
 
 			fmt.Println("-----------------------------------------------------")
-			if ethValue.Cmp(big.NewFloat(threshold)) >= 0.0 {
+			if ethValue >= threshold {
 				fmt.Println("Threshold met")
 				// Save to database
 				dexRepositories.SaveSwap(context.Background(), tx, version)

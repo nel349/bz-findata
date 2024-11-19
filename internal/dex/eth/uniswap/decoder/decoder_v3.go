@@ -71,7 +71,7 @@ func DecodeExactInputSingle(data []byte, version string) (*entity.SwapTransactio
 
     // [4]: deadline
     // [5]: amountIn e.g 0xb9eafe9ee6f4000 == 837300000000000000 and padding
-    amountIn := new(big.Int).SetBytes(data[160:192])
+    amountIn := ConvertToFloat64(new(big.Int).SetBytes(data[160:192]).String())
 
     // [6]: amountOutMinimum
     // [7]: sqrtPriceLimitX96

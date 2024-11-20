@@ -46,6 +46,10 @@ CREATE TABLE IF NOT EXISTS `swap_transactions`
     -- `deadline` datetime NOT NULL,
     `token_path_from` varchar(42) NOT NULL,
     `token_path_to` varchar(42) NOT NULL,
+    `value` float NOT NULL DEFAULT 0,
+    `amount_token_desired` float NULL, -- Uniswap V2 add liquidity
+    `amount_token_min` float NULL, -- Uniswap V2 add liquidity
+    `amount_eth_min` float NULL, -- Uniswap V2 add liquidity
     CONSTRAINT swap_transactions_pk
         PRIMARY KEY (`tx_hash`)
 ) ENGINE = InnoDB;

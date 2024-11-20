@@ -33,34 +33,45 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 	if tx != nil {
 		query := `
 		INSERT INTO swap_transactions (
+			value,
 			tx_hash, 
 			version, 
 			exchange, 
 			amount_in, 
 			to_address, 
 			token_path_from, 
-			token_path_to
+			token_path_to,
+			amount_token_desired,
+			amount_token_min,
+			amount_eth_min
 		) VALUES (
+			:value,
 			:tx_hash, 
 			:version, 
 			:exchange, 
 			:amount_in, 
 			:to_address, 
 			:token_path_from, 
-			:token_path_to
+			:token_path_to,
+			:amount_token_desired,
+			:amount_token_min,
+			:amount_eth_min
 		)`
 		_, err := e.db.NamedExecContext(
 			ctxReq,
 			query,
 			entity.SwapTransaction{
-				TxHash:    tx.Hash().Hex(),
-				Version:   version,
-				Exchange:  swapTransaction.Exchange,
-				AmountIn:  swapTransaction.AmountIn,
-				ToAddress: swapTransaction.ToAddress,
-				// Deadline:      swapTransaction.Deadline,
-				TokenPathFrom: swapTransaction.TokenPathFrom,
-				TokenPathTo:   swapTransaction.TokenPathTo,
+				Value:              swapTransaction.Value,
+				TxHash:             tx.Hash().Hex(),
+				Version:            version,
+				Exchange:           swapTransaction.Exchange,
+				AmountIn:           swapTransaction.AmountIn,
+				ToAddress:          swapTransaction.ToAddress,
+				TokenPathFrom:      swapTransaction.TokenPathFrom,
+				TokenPathTo:        swapTransaction.TokenPathTo,
+				AmountTokenDesired: swapTransaction.AmountTokenDesired,
+				AmountTokenMin:     swapTransaction.AmountTokenMin,
+				AmountETHMin:      	swapTransaction.AmountETHMin,
 			},
 		)
 		if err != nil {

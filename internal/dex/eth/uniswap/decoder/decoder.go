@@ -58,6 +58,8 @@ func DecodeSwap(tx *types.Transaction, version string) (*entity.SwapTransaction,
 			DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
 		case v2.SwapExactTokensForETHSupportingFeeOnTransferTokens:
 			DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
+		case v2.AddLiquidity:
+			DecodeAddLiquidity(data, version, swapTransactionResult)
 			// Add more cases for other v2 swap methods as needed
 		default:
 			fmt.Println("not supported yet")
@@ -246,5 +248,42 @@ func DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(
 	swapTransactionResult.AmountIn = amountIn
 	swapTransactionResult.TokenPathFrom = tokenPathFrom
 	swapTransactionResult.TokenPathTo = tokenPathTo
+	return nil
+}
+
+/*
+Function: addLiquidityETH(address token, uint256 amountTokenDesired, uint256 amountTokenMin, uint256 amountETHMin, address to, uint256 deadline)
+
+MethodID: 0xf305d719
+[0]:  0000000000000000000000006de1b3605a5e587e969e08166e3e5c5bfc4b1a16
+[1]:  0000000000000000000000000000000000000000033b2e3c9fd0803ce8000000
+[2]:  0000000000000000000000000000000000000000033b2e3c9fd0803ce8000000
+[3]:  000000000000000000000000000000000000000000000001158e460913d00000
+[4]:  0000000000000000000000002a853910205bbc1a879809441ce12e813c9eb018
+[5]:  00000000000000000000000000000000000000000000000000000000673c2107
+
+{
+  "token": "0x6de1b3605a5e587e969e08166e3e5c5bfc4b1a16",
+  "amountTokenDesired": "1000000000000000000000000000",
+  "amountTokenMin": "1000000000000000000000000000",
+  "amountETHMin": "20000000000000000000",
+  "to": "0x2a853910205bbc1a879809441ce12e813c9eb018",
+  "deadline": "1731993863"
+}
+*/
+func DecodeAddLiquidity(data []byte, version string, swapTransactionResult *entity.SwapTransaction) (error) {
+	data = data[4:]
+
+	// [0] token address (20 bytes + 12 bytes padding)
+	tokenAddress := fmt.Sprintf("0x%s", common.Bytes2Hex(data[:20])[24:])
+
+	amountTokenDesired := ConvertToFloat64(new(big.Int).SetBytes(data[:32]).String())
+	amountTokenMin := ConvertToFloat64(new(big.Int).SetBytes(data[32:64]).String())
+	amountETHMin := ConvertToFloat64(new(big.Int).SetBytes(data[64:96]).String())
+
+	swapTransactionResult.AmountTokenDesired = amountTokenDesired
+	swapTransactionResult.AmountTokenMin = amountTokenMin
+	swapTransactionResult.AmountETHMin = amountETHMin
+	swapTransactionResult.TokenPathTo = tokenAddress // Address of the token to pair with ETH
 	return nil
 }

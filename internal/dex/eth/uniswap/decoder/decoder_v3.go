@@ -54,7 +54,7 @@ Function: exactInputSingle(tuple params)
 	  }
 	}
 */
-func DecodeExactInputSingle(data []byte, version string) (*entity.SwapTransaction, error) {
+func DecodeExactInputSingle(data []byte, version string, swapTransactionResult *entity.SwapTransaction) (error) {
 
 	data = data[4:]
     // [0]: tokenIn
@@ -75,10 +75,77 @@ func DecodeExactInputSingle(data []byte, version string) (*entity.SwapTransactio
 
     // [6]: amountOutMinimum
     // [7]: sqrtPriceLimitX96
-    return &entity.SwapTransaction{
-        AmountIn:       amountIn,
-        TokenPathFrom:  tokenIn,
-        TokenPathTo:    tokenOut,
-        ToAddress:      recipient,
-    }, nil
+
+	swapTransactionResult.TokenPathFrom = tokenIn
+	swapTransactionResult.TokenPathTo = tokenOut
+	swapTransactionResult.ToAddress = recipient
+	swapTransactionResult.AmountIn = amountIn
+
+    return nil
+}
+
+
+/*
+	DecodeExactInput
+
+	   struct ExactInputParams {
+        bytes path;
+        address recipient;
+        uint256 deadline;
+        uint256 amountIn;
+        uint256 amountOutMinimum;
+    }
+
+	Function: exactInput(tuple params)
+
+	MethodID: 0xc04b8d59
+	[0]:  0000000000000000000000000000000000000000000000000000000000000020
+	[1]:  00000000000000000000000000000000000000000000000000000000000000a0
+	[2]:  000000000000000000000000b0ba33566bd35bcb80738810b2868dc1ddd1f0e9
+	[3]:  00000000000000000000000000000000000000000000000000000000673c1fcf
+	[4]:  000000000000000000000000000000000000000000000000066eced5a631d580
+	[5]:  000000000000000000000000000000000000000000000b38ca1ce396b5800000
+	[6]:  000000000000000000000000000000000000000000000000000000000000002b
+	[7]:  c02aaa39b223fe8d0a0e5c4f27ead9083c756cc200271038e382f74dfb84608f
+	[8]:  3c1f10187f6bef5951de93000000000000000000000000000000000000000000
+
+
+	{
+		"params": {
+			"path": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc200271038e382f74dfb84608f3c1f10187f6bef5951de93",
+			"recipient": "0xb0ba33566bd35bcb80738810b2868dc1ddd1f0e9",
+			"deadline": "1731993551",
+			"amountIn": "463535228677379456",
+			"amountOutMinimum": "52993612745225271246848"
+		}
+	}
+
+		// 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2  // First token address (WETH)
+		// 002710                                        // Fee tier (0.0027 = 0.27%)
+		// 0x38e382f74dfb84608f3c1f10187f6bef5951de93  // Second token address
+*/
+func DecodeExactInput(data []byte, version string, swapTransactionResult *entity.SwapTransaction) (error) {
+	data = data[4:]
+
+	// [4] amountIn 000000000000000000000000000000000000000000000000066eced5a631d580
+	amountIn := ConvertToFloat64(new(big.Int).SetBytes(data[144:160]).String())
+	
+
+	// path [7] and [8]
+
+	// first token address
+	firstTokenAddress := fmt.Sprintf("0x%s", common.Bytes2Hex(data[224:244]))
+	
+	// fee 
+	fee := fmt.Sprintf("0x%s", common.Bytes2Hex(data[244:247]))
+
+	// second token address
+	secondTokenAddress := fmt.Sprintf("0x%s", common.Bytes2Hex(data[247:267]))
+
+	swapTransactionResult.AmountIn = amountIn
+	swapTransactionResult.TokenPathFrom = firstTokenAddress
+	swapTransactionResult.TokenPathTo = secondTokenAddress
+	swapTransactionResult.Fee = fee
+
+	return nil
 }

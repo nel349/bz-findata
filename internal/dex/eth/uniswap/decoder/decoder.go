@@ -70,7 +70,9 @@ func DecodeSwap(tx *types.Transaction, version string) (*entity.SwapTransaction,
 		// Lets do a switch for all the v3 swap methods
 		switch swapMethod {
 		case v3.ExactInputSingle:
-			return DecodeExactInputSingle(data, version)
+			DecodeExactInputSingle(data, version, swapTransactionResult)
+		case v3.ExactInput:
+			DecodeExactInput(data, version, swapTransactionResult)
 		default:
 			fmt.Println("not supported yet")
 		}

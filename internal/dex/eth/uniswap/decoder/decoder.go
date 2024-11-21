@@ -67,6 +67,10 @@ func DecodeSwap(tx *types.Transaction, version string) (*entity.SwapTransaction,
 			DecodeAddLiquidity(data, version, swapTransactionResult)
 		case v2.RemoveLiquidityETHWithPermit:
 			DecodeRemoveLiquidityETHWithPermit(data, version, swapTransactionResult)
+		case v2.RemoveLiquidity:
+			DecodeRemoveLiquidityETH(data, version, swapTransactionResult)
+		case v2.RemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens:
+			DecodeRemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
 			// Add more cases for other v2 swap methods as needed
 		default:
 			fmt.Println("not supported yet")
@@ -286,9 +290,9 @@ func DecodeAddLiquidity(data []byte, version string, swapTransactionResult *enti
 	// [0] token address (20 bytes + 12 bytes padding)
 	tokenAddress := fmt.Sprintf("0x%s", common.Bytes2Hex(data[:20])[24:])
 
-	amountTokenDesired := ConvertToFloat64(new(big.Int).SetBytes(data[:32]).String())
-	amountTokenMin := ConvertToFloat64(new(big.Int).SetBytes(data[32:64]).String())
-	amountETHMin := ConvertToFloat64(new(big.Int).SetBytes(data[64:96]).String())
+	amountTokenDesired := new(big.Int).SetBytes(data[:32]).String()
+	amountTokenMin := new(big.Int).SetBytes(data[32:64]).String()
+	amountETHMin := new(big.Int).SetBytes(data[64:96]).String()
 
 	swapTransactionResult.AmountTokenDesired = amountTokenDesired
 	swapTransactionResult.AmountTokenMin = amountTokenMin
@@ -326,3 +330,25 @@ func DecodeRemoveLiquidityETHWithPermit(data []byte, version string, swapTransac
 	swapTransactionResult.Liquidity = liquidity
 	return nil
 }
+
+/*
+Function: removeLiquidityETH(address token, uint256 liquidity, uint256 amountTokenMin, uint256 amountETHMin, address to, uint256 deadline)
+
+MethodID: 0x02751cec
+[0]:  0000000000000000000000000f5c78f152152dda52a2ea45b0a8c10733010748
+[1]:  000000000000000000000000000000000000000000000001a2ef2e3a848cf74c
+[2]:  0000000000000000000000000000000000000000000008dacc72a69e84b90445
+[3]:  0000000000000000000000000000000000000000000000000059949fb27347c8
+[4]:  000000000000000000000000e1428dc0202f1f7d61d3116269d45d4ebbe7502d
+[5]:  00000000000000000000000000000000000000000000000000000000673ea577
+*/
+func DecodeRemoveLiquidityETH(data []byte, version string, swapTransactionResult *entity.SwapTransaction) error {
+	// use same logic as removeLiquidityETHWithPermit as we only need to decode the token address and liquidity
+	return DecodeRemoveLiquidityETHWithPermit(data, version, swapTransactionResult)
+}
+
+func DecodeRemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens(data []byte, version string, swapTransactionResult *entity.SwapTransaction) error {
+	// use same logic as removeLiquidityETHWithPermit as we only need to decode the token address and liquidity
+	return DecodeRemoveLiquidityETHWithPermit(data, version, swapTransactionResult)
+}
+

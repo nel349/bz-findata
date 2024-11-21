@@ -15,9 +15,9 @@ type SwapTransaction struct {
 	MethodName    string `db:"method_name"`
 
 	// Uniswap V2 add liquidity
-	AmountTokenDesired float64 `db:"amount_token_desired"`
-	AmountTokenMin     float64 `db:"amount_token_min"`
-	AmountETHMin       float64 `db:"amount_eth_min"`
+	AmountTokenDesired string `db:"amount_token_desired"`
+	AmountTokenMin     string `db:"amount_token_min"`
+	AmountETHMin       string `db:"amount_eth_min"`
 
 	Liquidity          string  `db:"liquidity"`
 

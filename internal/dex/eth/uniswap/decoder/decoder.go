@@ -63,11 +63,11 @@ func DecodeSwap(tx *types.Transaction, version string) (*entity.SwapTransaction,
 			DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
 		case v2.SwapExactTokensForETHSupportingFeeOnTransferTokens:
 			DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
-		case v2.AddLiquidity:
-			DecodeAddLiquidity(data, version, swapTransactionResult)
+		case v2.AddLiquidityETH:
+			DecodeAddLiquidityETH(data, version, swapTransactionResult)
 		case v2.RemoveLiquidityETHWithPermit:
 			DecodeRemoveLiquidityETHWithPermit(data, version, swapTransactionResult)
-		case v2.RemoveLiquidity:
+		case v2.RemoveLiquidityETH:
 			DecodeRemoveLiquidityETH(data, version, swapTransactionResult)
 		case v2.RemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens:
 			DecodeRemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
@@ -284,7 +284,7 @@ MethodID: 0xf305d719
 	  "deadline": "1731993863"
 	}
 */
-func DecodeAddLiquidity(data []byte, version string, swapTransactionResult *entity.SwapTransaction) error {
+func DecodeAddLiquidityETH(data []byte, version string, swapTransactionResult *entity.SwapTransaction) error {
 	data = data[4:]
 
 	// [0] token address (20 bytes + 12 bytes padding)

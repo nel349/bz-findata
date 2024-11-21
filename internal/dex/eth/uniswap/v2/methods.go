@@ -21,6 +21,7 @@ const (
 	RemoveLiquidityETH                                        UniswapV2SwapMethod = "02751cec"
 	RemoveLiquidity                                           UniswapV2SwapMethod = "baa2abde"
 	RemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens UniswapV2SwapMethod = "5b0d5984"
+	RemoveLiquidityWithPermit                                 UniswapV2SwapMethod = "2195995c"
 )
 
 // GetV2MethodFromID returns the UniswapV2SwapMethod for a given method ID
@@ -60,6 +61,8 @@ func GetV2MethodFromID(methodID string) (UniswapV2SwapMethod, bool) {
 		return RemoveLiquidity, true
 	case string(RemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens):
 		return RemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens, true
+	case string(RemoveLiquidityWithPermit):
+		return RemoveLiquidityWithPermit, true
 	default:
 		return "", false
 	}
@@ -96,6 +99,8 @@ func (s UniswapV2SwapMethod) String() string {
 		return "RemoveLiquidity"
 	case RemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens:
 		return "RemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens"
+	case RemoveLiquidityWithPermit:
+		return "RemoveLiquidityWithPermit"
 	default:
 		return "Unknown"
 	}

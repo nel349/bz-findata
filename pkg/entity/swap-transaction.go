@@ -11,6 +11,8 @@ type SwapTransaction struct {
 	ToAddress     string `db:"to_address"`
 	TokenPathFrom string `db:"token_path_from"`
 	TokenPathTo   string `db:"token_path_to"`
+	MethodID      string `db:"method_id"`
+	MethodName    string `db:"method_name"`
 
 	// Uniswap V2 add liquidity
 	AmountTokenDesired float64 `db:"amount_token_desired"`

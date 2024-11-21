@@ -25,10 +25,13 @@ func DecodeSwap(tx *types.Transaction, version string) (*entity.SwapTransaction,
 
 	var swapMethod interface{}
 	var ok bool
+	var swapMethodName string
 	if version == "V2" {
 		swapMethod, ok = v2.GetV2MethodFromID(methodID)
+		swapMethodName = swapMethod.(v2.UniswapV2SwapMethod).String()
 	} else {
 		swapMethod, ok = v3.GetV3MethodFromID(methodID)
+		swapMethodName = swapMethod.(v3.UniswapV3Method).String()
 	}
 	if !ok {
 		return nil, fmt.Errorf("unknown swap method: %s", methodID)
@@ -44,7 +47,9 @@ func DecodeSwap(tx *types.Transaction, version string) (*entity.SwapTransaction,
 		ToAddress: tx.To().Hex(),
 		Version:   version,
 		TxHash:    tx.Hash().Hex(),
-		Exchange:  "Uniswap",
+		MethodID:  methodID,
+		MethodName: swapMethodName,
+		Exchange:   "Uniswap",
 	}
 
 	switch swapMethod := swapMethod.(type) {
@@ -96,7 +101,7 @@ MethodID: 0x38ed1739
 [6]:  000000000000000000000000699ec925118567b6475fe495327ba0a778234aaa
 [7]:  000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
 */
-func DecodeSwapExactTokensForTokens(data []byte, version string, swapTransactionResult *entity.SwapTransaction) (error) {
+func DecodeSwapExactTokensForTokens(data []byte, version string, swapTransactionResult *entity.SwapTransaction) error {
 	// Skip first 4 bytes (method ID)
 	data = data[4:]
 
@@ -178,7 +183,7 @@ func DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(
 	data []byte,
 	version string,
 	swapTransactionResult *entity.SwapTransaction,
-) (error) {
+) error {
 
 	data = data[4:]
 
@@ -234,7 +239,7 @@ func DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(
 	data []byte,
 	version string,
 	swapTransactionResult *entity.SwapTransaction,
-) (error) {
+) error {
 	data = data[4:]
 
 	amountIn := ConvertToFloat64(new(big.Int).SetBytes(data[:32]).String())
@@ -264,16 +269,16 @@ MethodID: 0xf305d719
 [4]:  0000000000000000000000002a853910205bbc1a879809441ce12e813c9eb018
 [5]:  00000000000000000000000000000000000000000000000000000000673c2107
 
-{
-  "token": "0x6de1b3605a5e587e969e08166e3e5c5bfc4b1a16",
-  "amountTokenDesired": "1000000000000000000000000000",
-  "amountTokenMin": "1000000000000000000000000000",
-  "amountETHMin": "20000000000000000000",
-  "to": "0x2a853910205bbc1a879809441ce12e813c9eb018",
-  "deadline": "1731993863"
-}
+	{
+	  "token": "0x6de1b3605a5e587e969e08166e3e5c5bfc4b1a16",
+	  "amountTokenDesired": "1000000000000000000000000000",
+	  "amountTokenMin": "1000000000000000000000000000",
+	  "amountETHMin": "20000000000000000000",
+	  "to": "0x2a853910205bbc1a879809441ce12e813c9eb018",
+	  "deadline": "1731993863"
+	}
 */
-func DecodeAddLiquidity(data []byte, version string, swapTransactionResult *entity.SwapTransaction) (error) {
+func DecodeAddLiquidity(data []byte, version string, swapTransactionResult *entity.SwapTransaction) error {
 	data = data[4:]
 
 	// [0] token address (20 bytes + 12 bytes padding)

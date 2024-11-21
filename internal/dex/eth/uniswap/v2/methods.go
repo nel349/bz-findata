@@ -50,8 +50,12 @@ func GetV2MethodFromID(methodID string) (UniswapV2SwapMethod, bool) {
 		return SwapExactTokensForETHSupportingFeeOnTransferTokens, true
 	case string(AddLiquidity):
 		return AddLiquidity, true
+	case string(AddLiquidityETH):
+		return AddLiquidityETH, true
 	case string(RemoveLiquidityETHWithPermit):
 		return RemoveLiquidityETHWithPermit, true
+	case string(RemoveLiquidityETH):
+		return RemoveLiquidityETH, true
 	case string(RemoveLiquidity):
 		return RemoveLiquidity, true
 	case string(RemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens):

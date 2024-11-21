@@ -126,6 +126,28 @@ func TestDecodeSwapV2(t *testing.T) {
 		}
 	})
 
+	t.Run("Test DecodeRemoveLiquidityETHWithPermit", func(t *testing.T) {
+
+		data = common.FromHex("0xded9382a000000000000000000000000fe34cbcaef94a06a8fc1adce86d486f49af242ba00000000000000000000000000000000000000000000119707a239721536ed2a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001072d3be58b71b386724c624890547499fe39b8900000000000000000000000000000000000000000000000000000000673e95b70000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001bac42c5965bedf9500e171015c523074ac3162bf093ffd0627d51691a19abbae6386a09c71e9bbd14d91db91f9844c161f72753b1c84cf974b5f4fcbcae3d9418")
+
+		// https://dashboard.tenderly.co/tx/mainnet/0xfee06fd682ac1a32b9ebdb31dd9441e3edf6ca05887d5ba70b7bbe522782a05c
+		err := DecodeRemoveLiquidityETHWithPermit(data, version, swapTransactionResult)
+		checkSwapNotNil(t, err, swapTransactionResult)	
+
+		expected := &entity.SwapTransaction{
+			TokenPathFrom: "0xfe34cbcaef94a06a8fc1adce86d486f49af242ba",
+			Liquidity:     "83066238629180748524842",
+		}
+
+		if expected.TokenPathFrom != swapTransactionResult.TokenPathFrom {
+			t.Errorf("Token Path From does not match expected value %v, got %v", expected.TokenPathFrom, swapTransactionResult.TokenPathFrom)
+		}
+
+		if expected.Liquidity != swapTransactionResult.Liquidity {
+			t.Errorf("Liquidity does not match expected value %v, got %v", expected.Liquidity, swapTransactionResult.Liquidity)
+		}
+	})
+
 }
 
 // V3 tests

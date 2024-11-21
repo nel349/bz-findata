@@ -45,7 +45,8 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 			amount_token_min,
 			amount_eth_min,
 			method_id,
-			method_name
+			method_name,
+			liquidity
 		) VALUES (
 			:value,
 			:tx_hash, 
@@ -59,7 +60,8 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 			:amount_token_min,
 			:amount_eth_min,
 			:method_id,
-			:method_name
+			:method_name,
+			:liquidity
 		)`
 		_, err := e.db.NamedExecContext(
 			ctxReq,
@@ -78,6 +80,7 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 				AmountETHMin:      	swapTransaction.AmountETHMin,
 				MethodID:           swapTransaction.MethodID,
 				MethodName:         swapTransaction.MethodName,
+				Liquidity:          swapTransaction.Liquidity,
 			},
 		)
 		if err != nil {

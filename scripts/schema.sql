@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS `swap_transactions`
     `amount_eth_min` float NULL, -- Uniswap V2 add liquidity
     `method_id` varchar(10) NULL,
     `method_name` varchar(100) NULL,
+    `liquidity` varchar(100) NULL, -- Uniswap V2 remove liquidity
     CONSTRAINT swap_transactions_pk
         PRIMARY KEY (`tx_hash`)
 ) ENGINE = InnoDB;

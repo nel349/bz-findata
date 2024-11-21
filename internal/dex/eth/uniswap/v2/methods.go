@@ -16,6 +16,7 @@ const (
     SwapExactETHForTokensSupportingFeeOnTransferTokens    UniswapV2SwapMethod = "b6f9de95"
     SwapExactTokensForETHSupportingFeeOnTransferTokens    UniswapV2SwapMethod = "791ac947"
     AddLiquidity                                        UniswapV2SwapMethod = "f305d719"
+    RemoveLiquidityETHWithPermit                        UniswapV2SwapMethod = "ded9382a"
 )
 
 // GetV2MethodFromID returns the UniswapV2SwapMethod for a given method ID
@@ -45,6 +46,8 @@ func GetV2MethodFromID(methodID string) (UniswapV2SwapMethod, bool) {
         return SwapExactTokensForETHSupportingFeeOnTransferTokens, true
     case string(AddLiquidity):
         return AddLiquidity, true
+    case string(RemoveLiquidityETHWithPermit):
+        return RemoveLiquidityETHWithPermit, true
     default:
         return "", false
     }
@@ -73,6 +76,8 @@ func (s UniswapV2SwapMethod) String() string {
         return "SwapExactTokensForETHSupportingFeeOnTransferTokens"
     case AddLiquidity:
         return "AddLiquidity"
+    case RemoveLiquidityETHWithPermit:
+        return "RemoveLiquidityETHWithPermit"
     default:
         return "Unknown"
     }
@@ -95,7 +100,8 @@ func (s UniswapV2SwapMethod) IsETHOutput() bool {
     switch s {
     case SwapTokensForExactETH,
          SwapExactTokensForETH,
-         SwapExactTokensForETHSupportingFeeOnTransferTokens:
+         SwapExactTokensForETHSupportingFeeOnTransferTokens,
+         RemoveLiquidityETHWithPermit:
         return true
     default:
         return false

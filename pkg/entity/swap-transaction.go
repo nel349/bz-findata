@@ -19,6 +19,8 @@ type SwapTransaction struct {
 	AmountTokenMin     float64 `db:"amount_token_min"`
 	AmountETHMin       float64 `db:"amount_eth_min"`
 
+	Liquidity          string  `db:"liquidity"`
+
 	// Uniswap V3
 	Fee string `db:"fee"`
 }

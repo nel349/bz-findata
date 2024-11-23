@@ -10,11 +10,11 @@ const (
 
     // Base thresholds in native token decimals
     // These would need to be adjusted based on current market prices
-    EthereumSwapThreshold = 0   // ETH
-    BaseSwapThreshold     = 0.5   // ETH
-    ArbitrumSwapThreshold = 3.0   // ETH
-    PolygonSwapThreshold  = 5000  // MATIC
-    AvalancheSwapThreshold = 100  // AVAX
+    EthereumSwapThreshold = 0   // ETH  // original 10.0 , and 0 for testing
+    BaseSwapThreshold     = 10.0   // ETH
+    ArbitrumSwapThreshold = 10.0   // ETH
+    PolygonSwapThreshold  = 10000  // MATIC
+    AvalancheSwapThreshold = 500  // AVAX
 )
 
 func GetThresholdForChain(chainId uint64) float64 {

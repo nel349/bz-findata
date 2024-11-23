@@ -7,6 +7,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/jmoiron/sqlx"
+	"github.com/nel349/bz-findata/internal/dex/eth/defi_llama"
 	"github.com/nel349/bz-findata/internal/dex/eth/uniswap/decoder"
 	"github.com/nel349/bz-findata/pkg/entity"
 )
@@ -29,6 +30,15 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 		fmt.Println("Error decoding swap", "error", err)
 		return err
 	}
+
+	// should be in use case interface. but for now, here
+	tokenInfoFrom, err := defi_llama.GetTokenMetadataFromDbOrDefiLlama(e.db, swapTransaction.TokenPathFrom)
+	if err != nil {
+		fmt.Println("Error getting token metadata", "error", err)
+		return err
+	}
+
+	fmt.Printf("TokenInfoFrom decimals: %d\n, symbol: %s\n, price: %.9f\n", tokenInfoFrom.Decimals, tokenInfoFrom.Symbol, tokenInfoFrom.Price)
 
 	if tx != nil {
 		query := `

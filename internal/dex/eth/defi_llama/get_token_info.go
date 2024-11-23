@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
+
+	"github.com/jmoiron/sqlx"
 )
 
 /**
@@ -35,10 +38,10 @@ type DefiLlamaResponse struct {
 }
 
 type TokenInfo struct {
-	Address  string
-	Decimals uint8
-	Symbol   string
-	Price    float64
+	Address  string  `db:"address"`
+	Decimals uint8   `db:"decimals"`
+	Symbol   string  `db:"symbol"`
+	Price    float64 `db:"price"`
 }
 
 func GetTokenInfo(tokenAddress string) (TokenInfo, error) {
@@ -63,22 +66,50 @@ func GetTokenInfo(tokenAddress string) (TokenInfo, error) {
 		return TokenInfo{}, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-    var response DefiLlamaResponse
-    err = json.Unmarshal(body, &response)
-    if err != nil {
-        return TokenInfo{}, fmt.Errorf("failed to parse JSON: %w", err)
-    }
+	var response DefiLlamaResponse
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return TokenInfo{}, fmt.Errorf("failed to parse JSON: %w", err)
+	}
 
-    // Extract data from the response
-    key := fmt.Sprintf("ethereum:%s", tokenAddress)
-    if tokenData, exists := response.Coins[key]; exists {
-        return TokenInfo{
-            Address:  tokenAddress,
-            Decimals: tokenData.Decimals,
-            Symbol:   tokenData.Symbol,
-            Price:    tokenData.Price,
-        }, nil
-    }
+	// Extract data from the response
+	key := fmt.Sprintf("ethereum:%s", tokenAddress)
+	if tokenData, exists := response.Coins[key]; exists {
+		return TokenInfo{
+			Address:  tokenAddress,
+			Decimals: tokenData.Decimals,
+			Symbol:   tokenData.Symbol,
+			Price:    tokenData.Price,
+		}, nil
+	}
 
 	return TokenInfo{}, fmt.Errorf("token data not found in response")
+}
+
+func GetTokenMetadataFromDbOrDefiLlama(db *sqlx.DB, tokenAddress string) (TokenInfo, error) {
+	// Try to get from database first
+	var tokenInfo TokenInfo
+	err := db.Get(&tokenInfo, "SELECT * FROM token_metadata WHERE address = ?", strings.ToLower(tokenAddress))
+	if err == nil {
+		fmt.Println("Found token metadata in database: ", tokenInfo)
+		return tokenInfo, nil
+	}
+
+	// TODO: Get from defi llama api
+	tokenInfo, err = GetTokenInfo(tokenAddress)
+	if err != nil {
+		return TokenInfo{}, fmt.Errorf("failed to get token info: %w", err)
+	}
+
+	// Store in database
+	_, err = db.Exec(`
+    INSERT INTO token_metadata (address, decimals, symbol, price) 
+    VALUES (?, ?, ?, ?)`,
+		strings.ToLower(tokenInfo.Address), tokenInfo.Decimals, tokenInfo.Symbol, tokenInfo.Price,
+	)
+	if err != nil {
+		return TokenInfo{}, fmt.Errorf("failed to store token metadata: %w", err)
+	}
+
+	return tokenInfo, nil
 }

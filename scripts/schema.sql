@@ -60,8 +60,8 @@ CREATE TABLE IF NOT EXISTS `swap_transactions`
 
 CREATE TABLE IF NOT EXISTS `token_metadata` (
     `address` varchar(42) NOT NULL,
-    `decimals` tinyint UNSIGNED NOT NULL,
-    `symbol` varchar(10),
-    `last_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `decimals` tinyint UNSIGNED NULL,
+    `symbol` varchar(10) NULL,
+    `price` float NULL,
     PRIMARY KEY (`address`)
 ) ENGINE = InnoDB;

@@ -113,3 +113,12 @@ func GetTokenMetadataFromDbOrDefiLlama(db *sqlx.DB, tokenAddress string) (TokenI
 
 	return tokenInfo, nil
 }
+
+func GetWETHPrice(db *sqlx.DB) (float64, error) {
+	tokenInfo, err := GetTokenMetadataFromDbOrDefiLlama(db, "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
+	if err != nil {
+		return 0, fmt.Errorf("failed to get WETH price: %w", err)
+	}
+
+	return tokenInfo.Price, nil
+}

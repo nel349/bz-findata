@@ -71,7 +71,7 @@ func DecodeExactInputSingle(data []byte, version string, swapTransactionResult *
 
     // [4]: deadline
     // [5]: amountIn e.g 0xb9eafe9ee6f4000 == 837300000000000000 and padding
-    amountIn := ConvertToFloat64(new(big.Int).SetBytes(data[160:192]).String())
+    amountIn := new(big.Int).SetBytes(data[160:192])
 
     // [6]: amountOutMinimum
     // [7]: sqrtPriceLimitX96
@@ -79,7 +79,7 @@ func DecodeExactInputSingle(data []byte, version string, swapTransactionResult *
 	swapTransactionResult.TokenPathFrom = tokenIn
 	swapTransactionResult.TokenPathTo = tokenOut
 	swapTransactionResult.ToAddress = recipient
-	swapTransactionResult.AmountIn = amountIn
+	swapTransactionResult.AmountIn = amountIn.String()
 
     return nil
 }
@@ -128,9 +128,8 @@ func DecodeExactInput(data []byte, version string, swapTransactionResult *entity
 	data = data[4:]
 
 	// [4] amountIn 000000000000000000000000000000000000000000000000066eced5a631d580
-	amountIn := ConvertToFloat64(new(big.Int).SetBytes(data[144:160]).String())
+	amountIn := new(big.Int).SetBytes(data[144:160])
 	
-
 	// path [7] and [8]
 
 	// first token address
@@ -142,7 +141,7 @@ func DecodeExactInput(data []byte, version string, swapTransactionResult *entity
 	// second token address
 	secondTokenAddress := fmt.Sprintf("0x%s", common.Bytes2Hex(data[247:267]))
 
-	swapTransactionResult.AmountIn = amountIn
+	swapTransactionResult.AmountIn = amountIn.String()
 	swapTransactionResult.TokenPathFrom = firstTokenAddress
 	swapTransactionResult.TokenPathTo = secondTokenAddress
 	swapTransactionResult.Fee = fee

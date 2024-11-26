@@ -9,6 +9,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/nel349/bz-findata/internal/dex/eth/defi_llama"
 	"github.com/nel349/bz-findata/internal/dex/eth/uniswap/decoder"
+	"github.com/nel349/bz-findata/internal/dex/eth/uniswap/v2"
+	v3 "github.com/nel349/bz-findata/internal/dex/eth/uniswap/v3"
 	"github.com/nel349/bz-findata/pkg/entity"
 )
 
@@ -35,7 +37,52 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 	tokenInfoFrom, err := defi_llama.GetTokenMetadataFromDbOrDefiLlama(e.db, swapTransaction.TokenPathFrom)
 	if err != nil {
 		fmt.Println("Error getting token metadata", "error", err)
+		fmt.Println("Token path from", swapTransaction.TokenPathFrom)
 		return err
+	}
+
+	if version == "V2" {
+		// if is eth input, get eth price
+		// if method, ok := v2.GetV2MethodFromID(swapTransaction.MethodID); ok && method.IsETHInput() {
+		// 	ethPrice, err := defi_llama.GetWETHPrice(e.db)
+		// 	if err != nil {
+		// 		fmt.Println("Error getting WETH price", "error", err)
+		// 		return err
+		// 	}
+		// 	amountInFloat, _ := new(big.Float).SetString(swapTransaction.AmountIn)
+		// 	ethPriceFloat := new(big.Float).SetFloat64(ethPrice)
+		// 	swapTransaction.Value, _ = amountInFloat.Mul(amountInFloat, ethPriceFloat).Float64()
+		// }
+
+		// if it is a token input
+		if _, ok := v2.GetV2MethodFromID(swapTransaction.MethodID); ok {
+			tokenAmount := decoder.ConvertToBigInt(swapTransaction.AmountIn)
+			swapTransaction.Value = decoder.GetUsdValueFromToken(tokenAmount, tokenInfoFrom.Price, int(tokenInfoFrom.Decimals))
+		}
+	}
+
+	if version == "V3" {
+		// has eth value
+		// if _, ok := v3.GetV3MethodFromID(swapTransaction.MethodID); ok {
+		// 	val := tx.Value()
+		// 	if val != nil {
+		// 		ethPrice, err := defi_llama.GetWETHPrice(e.db)
+		// 		if err != nil {
+		// 			fmt.Println("Error getting WETH price", "error", err)
+		// 			return err
+		// 		}
+		// 		swapTransaction.Value = decoder.GetUsdValueFromEth(val, ethPrice)
+		// 	}
+		// }
+
+		// if it is a token input
+		if _, ok := v3.GetV3MethodFromID(swapTransaction.MethodID); ok {
+			tokenAmount := decoder.ConvertToBigInt(swapTransaction.AmountIn)
+			swapTransaction.Value = decoder.GetUsdValueFromToken(tokenAmount, tokenInfoFrom.Price, int(tokenInfoFrom.Decimals))
+
+			// Debug
+			fmt.Printf("DEBUG: Token amount: %s\n, price: %.9f\n, value: %.9f\n", swapTransaction.AmountIn, tokenInfoFrom.Price, swapTransaction.Value)
+		}
 	}
 
 	fmt.Printf("TokenInfoFrom decimals: %d\n, symbol: %s\n, price: %.9f\n", tokenInfoFrom.Decimals, tokenInfoFrom.Symbol, tokenInfoFrom.Price)
@@ -87,7 +134,7 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 				TokenPathTo:        swapTransaction.TokenPathTo,
 				AmountTokenDesired: swapTransaction.AmountTokenDesired,
 				AmountTokenMin:     swapTransaction.AmountTokenMin,
-				AmountETHMin:      	swapTransaction.AmountETHMin,
+				AmountETHMin:       swapTransaction.AmountETHMin,
 				MethodID:           swapTransaction.MethodID,
 				MethodName:         swapTransaction.MethodName,
 				Liquidity:          swapTransaction.Liquidity,

@@ -111,7 +111,8 @@ func (s UniswapV2SwapMethod) IsETHInput() bool {
 	switch s {
 	case SwapExactETHForTokens,
 		SwapETHForExactTokens,
-		SwapExactETHForTokensSupportingFeeOnTransferTokens:
+		SwapExactETHForTokensSupportingFeeOnTransferTokens,
+		AddLiquidityETH:
 		return true
 	default:
 		return false
@@ -124,7 +125,8 @@ func (s UniswapV2SwapMethod) IsETHOutput() bool {
 	case SwapTokensForExactETH,
 		SwapExactTokensForETH,
 		SwapExactTokensForETHSupportingFeeOnTransferTokens,
-		RemoveLiquidityETHWithPermit:
+		RemoveLiquidityETHWithPermit,
+		RemoveLiquidityETH:
 		return true
 	default:
 		return false

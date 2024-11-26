@@ -2,7 +2,6 @@ package decoder
 
 import (
 	"fmt"
-	"math/big"
 	"strings"
 	"testing"
 
@@ -29,7 +28,7 @@ func TestDecodeSwapV2(t *testing.T) {
 		checkSwapNotNil(t, err, swapTransactionResult)
 
 		expected := &entity.SwapTransaction{
-			AmountIn:      ConvertToFloat64("74542093747294688"),
+			AmountIn:      "74542093747294688",
 			TokenPathFrom: "0x699Ec925118567b6475Fe495327ba0a778234AaA",
 			TokenPathTo:   "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
 		}
@@ -62,12 +61,7 @@ func TestDecodeSwapV2(t *testing.T) {
 		err := DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
 
 		checkSwapNotNil(t, err, swapTransactionResult)
-		rawAmount, ok := new(big.Int).SetString("4999999999999999999999999", 10) // got expected amount from tenderly dev mode
 		// https://dashboard.tenderly.co/tx/mainnet/0x708b5ce2f7a6e6bf95ed92206955afddfe226bbd1911ff31f1dc9604a25fd93d
-
-		if !ok {
-			t.Fatal("failed to parse big.Int")
-		}
 
 		// expectedAmountInFloat64, _ := new(big.Float).Quo(
 		// 	new(big.Float).SetInt(rawAmount),
@@ -75,7 +69,7 @@ func TestDecodeSwapV2(t *testing.T) {
 		// ).Float64()
 
 		expected := &entity.SwapTransaction{
-			AmountIn:      ConvertToFloat64(rawAmount.String()),
+			AmountIn:      "4999999999999999999999999",
 			TokenPathFrom: "0xF3c7CECF8cBC3066F9a87b310cEBE198d00479aC",
 			TokenPathTo:   "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
 		}
@@ -98,17 +92,12 @@ func TestDecodeSwapV2(t *testing.T) {
 		// https://etherscan.io/tx/0xcf39e1501430f75f7ee041781b62592c6ba8a3749e5b5f3813f086023607dc1b
 		// https://dashboard.tenderly.co/tx/mainnet/0xcf39e1501430f75f7ee041781b62592c6ba8a3749e5b5f3813f086023607dc1b
 		data = common.FromHex("0x5c11d7950000000000000000000000000000000000000000000ec068614236ee611fe9470000000000000000000000000000000000000000000000000766b47bedbc6e9d00000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000c54a957d2e1da5067c7ad32d38d3a2bc2524531c000000000000000000000000000000000000000000000000000001932e9df0b80000000000000000000000000000000000000000000000000000000000000002000000000000000000000000debcad12e9c454a7338b3ec0c8058eec688c79d5000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
-		// tokenInfo := &defi_llama.TokenInfo{
-		// 	Address:  "0xdEbcaD12E9C454a7338B3EC0c8058EeC688c79d5",
-		// 	Decimals: 18,
-		// 	Symbol:   "$PnutKing",
-		// }
 
 		err := DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
 		checkSwapNotNil(t, err, swapTransactionResult)
 
 		expected := &entity.SwapTransaction{
-			AmountIn:      ConvertToFloat64("17833581308923813721794887"),
+			AmountIn:      "17833581308923813721794887",
 			TokenPathFrom: "0xdEbcaD12E9C454a7338B3EC0c8058EeC688c79d5",
 			TokenPathTo:   "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
 		}
@@ -164,7 +153,7 @@ func TestDecodeSwapV3(t *testing.T) {
 		checkSwapNotNil(t, err, swapTransactionResult)
 
 		expected := &entity.SwapTransaction{
-			AmountIn:      ConvertToFloat64("837300000000000000"),
+			AmountIn:      "837300000000000000",
 			TokenPathFrom: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
 			TokenPathTo:   "0xee2a03aa6dacf51c18679c516ad5283d8e7c2637",
 			ToAddress:     "0xf5213a6a2f0890321712520b8048d9886c1a9900",
@@ -195,7 +184,7 @@ func TestDecodeSwapV3(t *testing.T) {
 		checkSwapNotNil(t, err, swapTransactionResult)
 
 		expected := &entity.SwapTransaction{
-			AmountIn:      ConvertToFloat64("463535228677379456"),
+			AmountIn:      "463535228677379456",
 			TokenPathFrom: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
 			TokenPathTo:   "0x38e382f74dfb84608f3c1f10187f6bef5951de93",
 			Fee: "0x002710",

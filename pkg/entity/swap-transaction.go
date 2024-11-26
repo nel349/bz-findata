@@ -5,8 +5,8 @@ type SwapTransaction struct {
 	TxHash       string  `db:"tx_hash"`
 	Version      string  `db:"version"`
 	Exchange     string  `db:"exchange"`
-	AmountIn     float64 `db:"amount_in"`
-	AmountOutMin float64 `db:"amount_out_min"`
+	AmountIn     string `db:"amount_in"`
+	AmountOutMin string `db:"amount_out_min"`
 	// Deadline      string `db:"deadline"`
 	ToAddress     string `db:"to_address"`
 	TokenPathFrom string `db:"token_path_from"`

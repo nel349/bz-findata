@@ -43,7 +43,7 @@ func DecodeSwap(tx *types.Transaction, version string) (*entity.SwapTransaction,
 
 	swapTransactionResult := &entity.SwapTransaction{
 		Value:      GetEthValue(tx.Value()),
-		AmountIn:   ConvertToFloat64("0"),
+		AmountIn:   "0",
 		ToAddress:  tx.To().Hex(),
 		Version:    version,
 		TxHash:     tx.Hash().Hex(),
@@ -116,7 +116,7 @@ func DecodeSwapExactTokensForTokens(data []byte, version string, swapTransaction
 
 	// [0] amountIn (uint256)
 	fmt.Printf("Raw amountIn bytes: %x\n", data[:32])
-	amountIn := ConvertToFloat64(new(big.Int).SetBytes(data[:32]).String())
+	amountIn := new(big.Int).SetBytes(data[:32])
 	// fmt.Printf("Amount In: %v\n", amountIn)
 
 	// amountInDecimal := new(big.Float).Quo(
@@ -126,7 +126,7 @@ func DecodeSwapExactTokensForTokens(data []byte, version string, swapTransaction
 	// amountInFloat64, _ := amountInDecimal.Float64()
 
 	// [1] amountOutMin (uint256)
-	amountOutMin := ConvertToFloat64(new(big.Int).SetBytes(data[32:64]).String())
+	amountOutMin := new(big.Int).SetBytes(data[32:64])
 	// amountOutMinFloat64, _ := new(big.Float).Quo(
 	// 	new(big.Float).SetInt(amountOutMin),
 	// 	new(big.Float).SetFloat64(math.Pow(10, float64(tokenInfo.Decimals))),
@@ -155,8 +155,8 @@ func DecodeSwapExactTokensForTokens(data []byte, version string, swapTransaction
 	fmt.Printf("  From: 0x%s\n", tokenPathFrom)
 	fmt.Printf("  To: 0x%s\n", tokenPathTo)
 
-	swapTransactionResult.AmountIn = amountIn
-	swapTransactionResult.AmountOutMin = amountOutMin
+	swapTransactionResult.AmountIn = amountIn.String()
+	swapTransactionResult.AmountOutMin = amountOutMin.String()
 	swapTransactionResult.ToAddress = toAddress
 	swapTransactionResult.TokenPathFrom = tokenPathFrom
 	swapTransactionResult.TokenPathTo = tokenPathTo
@@ -193,7 +193,7 @@ func DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(
 
 	data = data[4:]
 
-	amountIn := ConvertToFloat64(new(big.Int).SetBytes(data[:32]).String())
+	amountIn := new(big.Int).SetBytes(data[:32])
 	// amountInFloat64, _ := new(big.Float).Quo(
 	// 	new(big.Float).SetInt(amountIn),
 	// 	new(big.Float).SetFloat64(math.Pow(10, float64(tokenInfo.Decimals))),
@@ -209,7 +209,7 @@ func DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(
 	fmt.Printf("  From: 0x%s\n", tokenPathFrom)
 	fmt.Printf("  To: 0x%s\n", tokenPathTo)
 
-	swapTransactionResult.AmountIn = amountIn
+	swapTransactionResult.AmountIn = amountIn.String()
 	swapTransactionResult.TokenPathFrom = tokenPathFrom
 	swapTransactionResult.TokenPathTo = tokenPathTo
 
@@ -248,7 +248,7 @@ func DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(
 ) error {
 	data = data[4:]
 
-	amountIn := ConvertToFloat64(new(big.Int).SetBytes(data[:32]).String())
+	amountIn := new(big.Int).SetBytes(data[:32])
 	// amountInFloat64, _ := new(big.Float).Quo(
 	// 	new(big.Float).SetInt(amountIn),
 	// 	new(big.Float).SetFloat64(math.Pow(10, float64(fromTokenInfo.Decimals))),
@@ -258,7 +258,7 @@ func DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(
 	tokenPathFrom := fmt.Sprintf("0x%s", common.Bytes2Hex(data[192:224])[24:]) // First token in path
 	tokenPathTo := fmt.Sprintf("0x%s", common.Bytes2Hex(data[224:256])[24:])   // Second token in path
 
-	swapTransactionResult.AmountIn = amountIn
+	swapTransactionResult.AmountIn = amountIn.String()
 	swapTransactionResult.TokenPathFrom = tokenPathFrom
 	swapTransactionResult.TokenPathTo = tokenPathTo
 	return nil

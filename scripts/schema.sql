@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS `swap_transactions`
     `method_id` varchar(10) NULL,
     `method_name` varchar(100) NULL,
     `liquidity` varchar(100) NULL, -- Uniswap V2 remove liquidity
+    `last_updated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT swap_transactions_pk
         PRIMARY KEY (`tx_hash`)
 ) ENGINE = InnoDB;
@@ -63,5 +64,8 @@ CREATE TABLE IF NOT EXISTS `token_metadata` (
     `decimals` tinyint UNSIGNED NULL,
     `symbol` varchar(10) NULL,
     `price` float NULL,
+    `last_updated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`address`)
 ) ENGINE = InnoDB;
+-- ALTER TABLE token_metadata ADD COLUMN `last_updated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP;
+-- ALTER TABLE token_metadata DROP COLUMN `last_updated`;

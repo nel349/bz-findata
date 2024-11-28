@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -39,9 +40,10 @@ type DefiLlamaResponse struct {
 
 type TokenInfo struct {
 	Address  string  `db:"address"`
-	Decimals uint8   `db:"decimals"`
-	Symbol   string  `db:"symbol"`
-	Price    float64 `db:"price"`
+	Decimals   uint8   `db:"decimals"`
+	Symbol     string  `db:"symbol"`
+	Price      float64 `db:"price"`
+	LastUpdated time.Time `db:"last_updated"`
 }
 
 func GetTokenInfo(tokenAddress string) (TokenInfo, error) {
@@ -86,16 +88,28 @@ func GetTokenInfo(tokenAddress string) (TokenInfo, error) {
 	return TokenInfo{}, fmt.Errorf("token data not found in response")
 }
 
-func GetTokenMetadataFromDbOrDefiLlama(db *sqlx.DB, tokenAddress string) (TokenInfo, error) {
+func GetTokenMetadataFromDbOrDefiLlama(db *sqlx.DB, tokenAddress string, updateInterval time.Duration) (TokenInfo, error) {
 	// Try to get from database first
 	var tokenInfo TokenInfo
-	err := db.Get(&tokenInfo, "SELECT * FROM token_metadata WHERE address = ?", strings.ToLower(tokenAddress))
+	err := db.Get(&tokenInfo, "SELECT * FROM token_metadata WHERE BINARY address = ?", strings.ToLower(tokenAddress))
 	if err == nil {
-		fmt.Println("Found token metadata in database: ", tokenInfo)
-		return tokenInfo, nil
+        timeSinceUpdate := time.Since(tokenInfo.LastUpdated)
+        fmt.Printf("Debug: Token %s last updated: %v\n", tokenAddress, tokenInfo.LastUpdated)
+        fmt.Printf("Debug: Time since last update: %v\n", timeSinceUpdate)
+        fmt.Printf("Debug: Update interval: %v\n", updateInterval)
+        fmt.Printf("Debug: Is stale? %v\n", timeSinceUpdate >= updateInterval)
+        
+        if timeSinceUpdate < updateInterval {
+            fmt.Println("Found token metadata in database: ", tokenInfo)
+            return tokenInfo, nil
+        }
+		fmt.Println("Token metadata is stale, updating from API with address: ", strings.ToLower(tokenAddress))
+	} else {
+		fmt.Println("Token metadata not found in database, fetching from API with address: ", strings.ToLower(tokenAddress))
+		fmt.Println("Error: ", err)
 	}
 
-	// TODO: Get from defi llama api
+	// Fetch from defi llama api if data is stale or not found
 	tokenInfo, err = GetTokenInfo(tokenAddress)
 	if err != nil {
 		return TokenInfo{}, fmt.Errorf("failed to get token info: %w", err)
@@ -103,19 +117,26 @@ func GetTokenMetadataFromDbOrDefiLlama(db *sqlx.DB, tokenAddress string) (TokenI
 
 	// Store in database
 	_, err = db.Exec(`
-    INSERT INTO token_metadata (address, decimals, symbol, price) 
-    VALUES (?, ?, ?, ?)`,
-		strings.ToLower(tokenInfo.Address), tokenInfo.Decimals, tokenInfo.Symbol, tokenInfo.Price,
+    INSERT INTO token_metadata (address, decimals, symbol, price, last_updated) 
+    VALUES (?, ?, ?, ?, ?)
+	ON DUPLICATE KEY UPDATE
+		address = VALUES(address),
+		decimals = VALUES(decimals),
+		symbol = VALUES(symbol),
+		price = VALUES(price),
+		last_updated = VALUES(last_updated)
+	`,
+		strings.ToLower(tokenInfo.Address), tokenInfo.Decimals, tokenInfo.Symbol, tokenInfo.Price, time.Now(),
 	)
 	if err != nil {
 		return TokenInfo{}, fmt.Errorf("failed to store token metadata: %w", err)
 	}
-
+	fmt.Println("Stored or updated token metadata in database: ", tokenInfo)
 	return tokenInfo, nil
 }
 
 func GetWETHPrice(db *sqlx.DB) (float64, error) {
-	tokenInfo, err := GetTokenMetadataFromDbOrDefiLlama(db, "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
+	tokenInfo, err := GetTokenMetadataFromDbOrDefiLlama(db, "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", 15*time.Minute)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get WETH price: %w", err)
 	}

@@ -38,8 +38,8 @@ func DecodeSwap(tx *types.Transaction, version string) (*entity.SwapTransaction,
 	}
 
 	// Debug prints
-	fmt.Printf("Swap Method: %s\n", swapMethod)
-	fmt.Println("First 4 bytes (method signature):", methodID)
+	// fmt.Printf("Swap Method: %s\n", swapMethod)
+	// fmt.Println("First 4 bytes (method signature):", methodID)
 
 	swapTransactionResult := &entity.SwapTransaction{
 		Value:      GetEthValue(tx.Value()),
@@ -54,7 +54,7 @@ func DecodeSwap(tx *types.Transaction, version string) (*entity.SwapTransaction,
 
 	switch swapMethod := swapMethod.(type) {
 	case v2.UniswapV2SwapMethod:
-		fmt.Println("V2 swap method")
+		// fmt.Println("V2 swap method")
 		// Lets do a switch for all the v2 swap methods
 		switch swapMethod {
 		case v2.SwapExactTokensForTokens:
@@ -112,10 +112,10 @@ func DecodeSwapExactTokensForTokens(data []byte, version string, swapTransaction
 	data = data[4:]
 
 	// print method signature
-	fmt.Printf("Method Signature: %s\n", v2.SwapExactTokensForTokens)
+	// fmt.Printf("Method Signature: %s\n", v2.SwapExactTokensForTokens)
 
 	// [0] amountIn (uint256)
-	fmt.Printf("Raw amountIn bytes: %x\n", data[:32])
+	// fmt.Printf("Raw amountIn bytes: %x\n", data[:32])
 	amountIn := new(big.Int).SetBytes(data[:32])
 	// fmt.Printf("Amount In: %v\n", amountIn)
 
@@ -149,11 +149,11 @@ func DecodeSwapExactTokensForTokens(data []byte, version string, swapTransaction
 	tokenPathFrom := fmt.Sprintf("0x%s", common.Bytes2Hex(data[192:224])[24:]) // First token in path
 	tokenPathTo := fmt.Sprintf("0x%s", common.Bytes2Hex(data[224:256])[24:])   // Second token in path
 
-	fmt.Printf("Amount In: %v tokens\n", amountIn)
-	fmt.Printf("To Address: 0x%s\n", toAddress)
-	fmt.Printf("Token Path:\n")
-	fmt.Printf("  From: 0x%s\n", tokenPathFrom)
-	fmt.Printf("  To: 0x%s\n", tokenPathTo)
+	// fmt.Printf("Amount In: %v tokens\n", amountIn)
+	// fmt.Printf("To Address: 0x%s\n", toAddress)
+	// fmt.Printf("Token Path:\n")
+	// fmt.Printf("  From: 0x%s\n", tokenPathFrom)
+	// fmt.Printf("  To: 0x%s\n", tokenPathTo)
 
 	swapTransactionResult.AmountIn = amountIn.String()
 	swapTransactionResult.AmountOutMin = amountOutMin.String()
@@ -204,10 +204,10 @@ func DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(
 	tokenPathFrom := fmt.Sprintf("0x%s", common.Bytes2Hex(data[192:224])[24:]) // First token in path
 	tokenPathTo := fmt.Sprintf("0x%s", common.Bytes2Hex(data[224:256])[24:])   // Second token in path
 
-	fmt.Printf("Amount In: %v tokens\n", amountIn)
-	fmt.Printf("Token Path:\n")
-	fmt.Printf("  From: 0x%s\n", tokenPathFrom)
-	fmt.Printf("  To: 0x%s\n", tokenPathTo)
+	// fmt.Printf("Amount In: %v tokens\n", amountIn)
+	// fmt.Printf("Token Path:\n")
+	// fmt.Printf("  From: 0x%s\n", tokenPathFrom)
+	// fmt.Printf("  To: 0x%s\n", tokenPathTo)
 
 	swapTransactionResult.AmountIn = amountIn.String()
 	swapTransactionResult.TokenPathFrom = tokenPathFrom

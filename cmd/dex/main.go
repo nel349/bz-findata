@@ -99,7 +99,7 @@ func processBlock(client *ethclient.Client, header *types.Header, dexRepositorie
 		if toAddress == strings.ToLower(UniswapRouterAddress) ||
 			toAddress == strings.ToLower(UniswapV3RouterAddress) {
 
-			from, err := types.Sender(types.LatestSignerForChainID(tx.ChainId()), tx)
+			_, err := types.Sender(types.LatestSignerForChainID(tx.ChainId()), tx)
 			if err != nil {
 				log.Printf("Error getting sender: %v", err)
 				continue
@@ -116,17 +116,16 @@ func processBlock(client *ethclient.Client, header *types.Header, dexRepositorie
 
 			fmt.Println("-----------------------------------------------------")
 			if ethValue >= threshold {
-				fmt.Println("Threshold met")
 				// Save to database
 				dexRepositories.SaveSwap(context.Background(), tx, version)
 			}
 
 
-			fmt.Println("Chain ID: ", tx.ChainId().Uint64())
-			fmt.Printf("Uniswap %s Transaction\n", version)
+			// fmt.Println("Chain ID: ", tx.ChainId().Uint64())
+			// fmt.Printf("Uniswap %s Transaction\n", version)
 			fmt.Printf("Transaction Hash: %s\n", tx.Hash().Hex())
-			fmt.Printf("From: %s\n", from.Hex())
-			fmt.Printf("Value: %f ETH\n", ethValue)
+			// fmt.Printf("From: %s\n", from.Hex())
+			// fmt.Printf("Value: %f ETH\n", ethValue)
 			fmt.Println("-----------------------------------------------------")
 		}
 	}

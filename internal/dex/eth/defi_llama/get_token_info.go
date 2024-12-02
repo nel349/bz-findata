@@ -94,10 +94,10 @@ func GetTokenMetadataFromDbOrDefiLlama(db *sqlx.DB, tokenAddress string, updateI
 	err := db.Get(&tokenInfo, "SELECT * FROM token_metadata WHERE BINARY address = ?", strings.ToLower(tokenAddress))
 	if err == nil {
         timeSinceUpdate := time.Since(tokenInfo.LastUpdated)
-        fmt.Printf("Debug: Token %s last updated: %v\n", tokenAddress, tokenInfo.LastUpdated)
-        fmt.Printf("Debug: Time since last update: %v\n", timeSinceUpdate)
-        fmt.Printf("Debug: Update interval: %v\n", updateInterval)
-        fmt.Printf("Debug: Is stale? %v\n", timeSinceUpdate >= updateInterval)
+        // fmt.Printf("Debug: Token %s last updated: %v\n", tokenAddress, tokenInfo.LastUpdated)
+        // fmt.Printf("Debug: Time since last update: %v\n", timeSinceUpdate)
+        // fmt.Printf("Debug: Update interval: %v\n", updateInterval)
+        // fmt.Printf("Debug: Is stale? %v\n", timeSinceUpdate >= updateInterval)
         
         if timeSinceUpdate < updateInterval {
             fmt.Println("Found token metadata in database: ", tokenInfo)
@@ -131,7 +131,7 @@ func GetTokenMetadataFromDbOrDefiLlama(db *sqlx.DB, tokenAddress string, updateI
 	if err != nil {
 		return TokenInfo{}, fmt.Errorf("failed to store token metadata: %w", err)
 	}
-	fmt.Println("Stored or updated token metadata in database: ", tokenInfo)
+	// fmt.Println("Stored or updated token metadata in database: ", tokenInfo)
 	return tokenInfo, nil
 }
 

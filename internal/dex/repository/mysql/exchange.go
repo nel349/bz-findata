@@ -37,7 +37,7 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 	tokenInfoFrom, err := defi_llama.GetTokenMetadataFromDbOrDefiLlama(e.db, swapTransaction.TokenPathFrom, 15*time.Minute)
 	if err != nil {
 		fmt.Println("Error getting token metadata", "error", err)
-		fmt.Println("Token path from", swapTransaction.TokenPathFrom)
+		// fmt.Println("Token path from", swapTransaction.TokenPathFrom)
 		return err
 	}
 
@@ -56,11 +56,11 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 			swapTransaction.Value = decoder.GetUsdValueFromToken(tokenAmount, tokenInfoFrom.Price, int(tokenInfoFrom.Decimals))
 
 			// Debug
-			fmt.Printf("DEBUG: Token amount: %s\n, price: %.9f\n, value: %.9f\n", swapTransaction.AmountIn, tokenInfoFrom.Price, swapTransaction.Value)
+			// fmt.Printf("DEBUG: Token amount: %s\n, price: %.9f\n, value: %.9f\n", swapTransaction.AmountIn, tokenInfoFrom.Price, swapTransaction.Value)
 		}
 	}
 
-	fmt.Printf("TokenInfoFrom decimals: %d\n, symbol: %s\n, price: %.9f\n", tokenInfoFrom.Decimals, tokenInfoFrom.Symbol, tokenInfoFrom.Price)
+	// fmt.Printf("TokenInfoFrom decimals: %d\n, symbol: %s\n, price: %.9f\n", tokenInfoFrom.Decimals, tokenInfoFrom.Symbol, tokenInfoFrom.Price)
 
 	if tx != nil {
 		query := `
@@ -119,7 +119,7 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 			fmt.Println("Error inserting swap", "error", err)
 			return err
 		}
-		fmt.Println("Swap inserted successfully")
+		fmt.Printf("Swap inserted successfully: %s\n", swapTransaction.TxHash)
 		return nil
 	}
 

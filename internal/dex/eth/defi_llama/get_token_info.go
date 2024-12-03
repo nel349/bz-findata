@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/nel349/bz-findata/internal/dex/eth/moralis"
+	"github.com/nel349/bz-findata/pkg/entity"
 )
 
 /**
@@ -38,46 +40,38 @@ type DefiLlamaResponse struct {
 	} `json:"coins"`
 }
 
-type TokenInfo struct {
-	Address  string  `db:"address"`
-	Decimals   uint8   `db:"decimals"`
-	Symbol     string  `db:"symbol"`
-	Price      float64 `db:"price"`
-	LastUpdated time.Time `db:"last_updated"`
-}
-
-func GetTokenInfo(tokenAddress string) (TokenInfo, error) {
+func GetTokenInfo(tokenAddress string) (entity.TokenInfo, error) {
 
 	url := fmt.Sprintf("https://coins.llama.fi/prices/current/ethereum:%s?searchWidth=4h", tokenAddress)
 
 	// Make the HTTP GET request
 	resp, err := http.Get(url)
 	if err != nil {
-		return TokenInfo{}, fmt.Errorf("failed to fetch data: %w", err)
+		return entity.TokenInfo{}, fmt.Errorf("failed to fetch data: %w", err)
 	}
 	defer resp.Body.Close() // Ensure the response body is closed
 
 	// Check if the request was successful
 	if resp.StatusCode != http.StatusOK {
-		return TokenInfo{}, fmt.Errorf("failed to fetch data: %s", resp.Status)
+		return entity.TokenInfo{}, fmt.Errorf("failed to fetch data: %s", resp.Status)
 	}
 
 	// Read the response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return TokenInfo{}, fmt.Errorf("failed to read response body: %w", err)
+		return entity.TokenInfo{}, fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	var response DefiLlamaResponse
 	err = json.Unmarshal(body, &response)
 	if err != nil {
-		return TokenInfo{}, fmt.Errorf("failed to parse JSON: %w", err)
+		return entity.TokenInfo{}, fmt.Errorf("failed to parse JSON: %w", err)
 	}
 
 	// Extract data from the response
 	key := fmt.Sprintf("ethereum:%s", tokenAddress)
 	if tokenData, exists := response.Coins[key]; exists {
-		return TokenInfo{
+		return entity.TokenInfo{
 			Address:  tokenAddress,
 			Decimals: tokenData.Decimals,
 			Symbol:   tokenData.Symbol,
@@ -85,12 +79,12 @@ func GetTokenInfo(tokenAddress string) (TokenInfo, error) {
 		}, nil
 	}
 
-	return TokenInfo{}, fmt.Errorf("token data not found in response")
+	return entity.TokenInfo{}, fmt.Errorf("token data not found in response")
 }
 
-func GetTokenMetadataFromDbOrDefiLlama(db *sqlx.DB, tokenAddress string, updateInterval time.Duration) (TokenInfo, error) {
+func GetTokenMetadataFromDbOrDefiLlama(db *sqlx.DB, tokenAddress string, updateInterval time.Duration) (entity.TokenInfo, error) {
 	// Try to get from database first
-	var tokenInfo TokenInfo
+	var tokenInfo entity.TokenInfo
 	err := db.Get(&tokenInfo, "SELECT * FROM token_metadata WHERE BINARY address = ?", strings.ToLower(tokenAddress))
 	if err == nil {
         timeSinceUpdate := time.Since(tokenInfo.LastUpdated)
@@ -112,7 +106,11 @@ func GetTokenMetadataFromDbOrDefiLlama(db *sqlx.DB, tokenAddress string, updateI
 	// Fetch from defi llama api if data is stale or not found
 	tokenInfo, err = GetTokenInfo(tokenAddress)
 	if err != nil {
-		return TokenInfo{}, fmt.Errorf("failed to get token info: %w", err)
+		// fetch from moralis as fallback
+		tokenInfo, err = moralis.GetTokenInfoFromMoralis(tokenAddress)
+		if err != nil {
+			return entity.TokenInfo{}, fmt.Errorf("failed to get token info from defi llama or moralis: %w", err)
+		}
 	}
 
 	// Store in database
@@ -129,7 +127,7 @@ func GetTokenMetadataFromDbOrDefiLlama(db *sqlx.DB, tokenAddress string, updateI
 		strings.ToLower(tokenInfo.Address), tokenInfo.Decimals, tokenInfo.Symbol, tokenInfo.Price, time.Now(),
 	)
 	if err != nil {
-		return TokenInfo{}, fmt.Errorf("failed to store token metadata: %w", err)
+		return entity.TokenInfo{}, fmt.Errorf("failed to store token metadata: %w", err)
 	}
 	// fmt.Println("Stored or updated token metadata in database: ", tokenInfo)
 	return tokenInfo, nil

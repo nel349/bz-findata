@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"github.com/nel349/bz-findata/pkg/entity"
 )
@@ -57,7 +58,7 @@ func GetTokenInfoFromMoralis(tokenAddress string) (entity.TokenInfo, error) {
 	req, _ := http.NewRequest("GET", url, nil)
   
 	req.Header.Add("Accept", "application/json")
-	req.Header.Add("X-API-Key", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImI2NDViMmE1LTk1M2MtNDIxMi05MTZlLWNlODBmMmZhZWJmYSIsIm9yZ0lkIjoiNDE5MTM5IiwidXNlcklkIjoiNDMxMDM2IiwidHlwZUlkIjoiNmE5YTQ0ODYtYmFiYy00ZDA2LTlhNTItMTYxZWM5YWY4OWY4IiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3MzMxNjgyMzgsImV4cCI6NDg4ODkyODIzOH0.hI-6bBK6JLZJjefKWVxM0mXSdWeDJiL2EK1w-XtwEN8")
+	req.Header.Add("X-API-Key", os.Getenv("MORALIS_API_KEY"))
   
 	res, _ := http.DefaultClient.Do(req)
 

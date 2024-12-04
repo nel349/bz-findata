@@ -109,8 +109,11 @@ func GetTokenMetadataFromDbOrDefiLlama(db *sqlx.DB, tokenAddress string, updateI
 		// fetch from moralis as fallback
 		tokenInfo, err = moralis.GetTokenInfoFromMoralis(tokenAddress)
 		if err != nil {
-			return entity.TokenInfo{}, fmt.Errorf("failed to get token info from defi llama or moralis: %w", err)
+			return entity.TokenInfo{},
+				fmt.Errorf("failed to get token %s info from moralis: %w", tokenAddress, err)
 		}
+
+		fmt.Println("Fetched token metadata from moralis: ", tokenInfo)
 	}
 
 	// Store in database

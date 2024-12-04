@@ -137,6 +137,32 @@ func TestDecodeSwapV2(t *testing.T) {
 		}
 	})
 
+	t.Run("Test DecodeSwapExactETHForTokensSupportingFeeOnTransferTokens", func(t *testing.T) {
+
+		data = common.FromHex("0xb6f9de950000000000000000000000000000000000000000000000000004f2cf373add62000000000000000000000000000000000000000000000000000000000000008000000000000000000000000076db926b75e225af64b954c95fef653926ea7965000000000000000000000000000000000000000000000000000001938f5069630000000000000000000000000000000000000000000000000000000000000002000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2000000000000000000000000790336af90933aa7bd10d4534db6909507098440")
+
+		err := DecodeSwapExactETHForTokensSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
+		checkSwapNotNil(t, err, swapTransactionResult)
+
+		expected := &entity.SwapTransaction{
+			AmountOutMin: "1392871705599330",
+			TokenPathFrom: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+			TokenPathTo:   "0x790336af90933aa7bd10d4534db6909507098440",
+		}
+
+		if expected.AmountOutMin != swapTransactionResult.AmountOutMin {
+			t.Errorf("Amount Out Min does not match expected value %v, got %v", expected.AmountOutMin, swapTransactionResult.AmountOutMin)
+		}
+
+		if toLowerCaseHex(expected.TokenPathFrom) != toLowerCaseHex(swapTransactionResult.TokenPathFrom) {
+			t.Errorf("Token Path From does not match expected value %v, got %v", expected.TokenPathFrom, swapTransactionResult.TokenPathFrom)
+		}
+
+		if toLowerCaseHex(expected.TokenPathTo) != toLowerCaseHex(swapTransactionResult.TokenPathTo) {
+			t.Errorf("Token Path To does not match expected value %v, got %v", expected.TokenPathTo, swapTransactionResult.TokenPathTo)
+		}
+	})
+
 }
 
 // V3 tests

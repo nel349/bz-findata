@@ -77,7 +77,8 @@ func DecodeSwap(tx *types.Transaction, version string) (*entity.SwapTransaction,
 			// DecodeSwapExactETHForTokens(data, version, swapTransactionResult)
 		case v2.SwapTokensForExactTokens:
 			DecodeSwapTokensForExactTokens(data, version, swapTransactionResult)
-		// Add more cases for other v2 swap methods as needed
+		case v2.SwapExactTokensForETH:
+			DecodeSwapExactTokensForETH(data, swapTransactionResult)
 		default:
 			fmt.Println("not supported yet")
 		}
@@ -451,6 +452,54 @@ func DecodeSwapTokensForExactTokens(data []byte, version string, swapTransaction
 	swapTransactionResult.AmountOut = amountOut
 	swapTransactionResult.AmountInMax = amountInMax
 	swapTransactionResult.AmountIn = amountInMax // same as amountInMax for this function
+	swapTransactionResult.TokenPathFrom = tokenPathFrom
+	swapTransactionResult.TokenPathTo = tokenPathTo
+	return nil
+}
+
+/*
+	https://dashboard.tenderly.co/tx/mainnet/0x13153a9aa376a5414e3e03f3fd811dc3f4043dab005b3c121905965e309b397d
+	Function: swapExactTokensForETH(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline)
+
+	MethodID: 0x18cbafe5
+	[0]:  000000000000000000000000000000000000000002386e78249bcbd50c1c0000
+	[1]:  000000000000000000000000000000000000000000000000011b475f5f08b23a
+	[2]:  00000000000000000000000000000000000000000000000000000000000000a0
+	[3]:  0000000000000000000000008c5bd953f3e2756d5270abe14ed8d9c7f574b42a
+	[4]:  00000000000000000000000000000000000000000000000000000000ce9f5c2a
+	[5]:  0000000000000000000000000000000000000000000000000000000000000002
+	[6]:  000000000000000000000000b0ac2b5a73da0e67a8e5489ba922b3f8d582e058
+	[7]:  000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
+
+	{
+		"amountIn": "687191542101440000000000000",
+		"amountOutMin": "79735893350986298",
+		"path": [
+			"0xb0ac2b5a73da0e67a8e5489ba922b3f8d582e058",
+			"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+		],
+		"to": "0x8c5bd953f3e2756d5270abe14ed8d9c7f574b42a",
+		"deadline": "3466550314"
+	}
+*/
+
+func DecodeSwapExactTokensForETH(data []byte, swapTransactionResult *entity.SwapTransaction) error {
+
+	data = data[4:]
+
+	// [0] amountIn	
+	amountIn := new(big.Int).SetBytes(data[:32]).String()
+
+	// [1] amountOutMin
+	amountOutMin := new(big.Int).SetBytes(data[32:64]).String()
+
+
+	// [6] and [7] are token addresses in the path
+	tokenPathFrom := fmt.Sprintf("0x%s", common.Bytes2Hex(data[192:224])[24:]) // First token in path
+	tokenPathTo := fmt.Sprintf("0x%s", common.Bytes2Hex(data[224:256])[24:])   // Second token in path
+
+	swapTransactionResult.AmountIn = amountIn
+	swapTransactionResult.AmountOutMin = amountOutMin
 	swapTransactionResult.TokenPathFrom = tokenPathFrom
 	swapTransactionResult.TokenPathTo = tokenPathTo
 	return nil

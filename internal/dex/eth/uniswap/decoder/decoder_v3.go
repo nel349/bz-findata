@@ -54,7 +54,7 @@ Function: exactInputSingle(tuple params)
 	  }
 	}
 */
-func DecodeExactInputSingle(data []byte, version string, swapTransactionResult *entity.SwapTransaction) (error) {
+func DecodeExactInputSingle(data []byte, swapTransactionResult *entity.SwapTransaction) (error) {
 
 	data = data[4:]
     // [0]: tokenIn
@@ -124,7 +124,7 @@ func DecodeExactInputSingle(data []byte, version string, swapTransactionResult *
 		// 002710                                        // Fee tier (0.0027 = 0.27%)
 		// 0x38e382f74dfb84608f3c1f10187f6bef5951de93  // Second token address
 */
-func DecodeExactInput(data []byte, version string, swapTransactionResult *entity.SwapTransaction) (error) {
+func DecodeExactInput(data []byte, swapTransactionResult *entity.SwapTransaction) (error) {
 	data = data[4:]
 
 	// [4] amountIn 000000000000000000000000000000000000000000000000066eced5a631d580
@@ -145,6 +145,40 @@ func DecodeExactInput(data []byte, version string, swapTransactionResult *entity
 	swapTransactionResult.TokenPathFrom = firstTokenAddress
 	swapTransactionResult.TokenPathTo = secondTokenAddress
 	swapTransactionResult.Fee = fee
+
+	return nil
+}
+
+/*
+	Function: exactOutputSingle(tuple params)
+
+	MethodID: 0xdb3e2198
+	[0]:  000000000000000000000000d31a59c85ae9d8edefec411d448f90841571b89c
+	[1]:  000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
+	[2]:  0000000000000000000000000000000000000000000000000000000000000bb8
+	[3]:  000000000000000000000000f5213a6a2f0890321712520b8048d9886c1a9900
+	[4]:  00000000000000000000000000000000000000000000000000000000674fad84
+	[5]:  0000000000000000000000000000000000000000000000012b824fb44600c000
+	[6]:  0000000000000000000000000000000000000000000000000000004e3f884eef
+	[7]:  0000000000000000000000000000000000000000000000000000000000000000
+*/
+func DecodeExactOutputSingle(data []byte, swapTransactionResult *entity.SwapTransaction) (error) {
+
+	data = data[4:]
+
+	// [0] tokenIn
+	tokenIn := fmt.Sprintf("0x%s", common.Bytes2Hex(data[0:32])[24:])
+
+	// [1] tokenOut
+	tokenOut := fmt.Sprintf("0x%s", common.Bytes2Hex(data[32:64])[24:])
+
+	// [6] amountInMaximum
+	amountInMaximum := new(big.Int).SetBytes(data[192:224])
+
+	swapTransactionResult.AmountInMax = amountInMaximum.String()
+	swapTransactionResult.TokenPathFrom = tokenIn
+	swapTransactionResult.TokenPathTo = tokenOut
+	swapTransactionResult.AmountIn = amountInMaximum.String() // same as amountInMaximum for this function
 
 	return nil
 }

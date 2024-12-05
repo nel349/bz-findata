@@ -87,9 +87,11 @@ func DecodeSwap(tx *types.Transaction, version string) (*entity.SwapTransaction,
 		// Lets do a switch for all the v3 swap methods
 		switch swapMethod {
 		case v3.ExactInputSingle:
-			DecodeExactInputSingle(data, version, swapTransactionResult)
+			DecodeExactInputSingle(data, swapTransactionResult)
 		case v3.ExactInput:
-			DecodeExactInput(data, version, swapTransactionResult)
+			DecodeExactInput(data, swapTransactionResult)
+		case v3.ExactOutputSingle:
+			DecodeExactOutputSingle(data, swapTransactionResult)
 		default:
 			fmt.Println("not supported yet")
 		}
@@ -405,6 +407,7 @@ func DecodeSwapExactETHForTokensSupportingFeeOnTransferTokens(data []byte, versi
 }
 
 /*
+	https://dashboard.tenderly.co/tx/mainnet/0x7d310e4465220787b594afd033014cc97c0d6ae4fccf290e3aa4110e5a6f26c8
 	Function: swapTokensForExactTokens(uint256 amountOut, uint256 amountInMax, address[] path, address to, uint256 deadline)
 
 	MethodID: 0x8803dbee

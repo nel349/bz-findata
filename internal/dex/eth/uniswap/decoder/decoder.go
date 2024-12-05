@@ -79,6 +79,8 @@ func DecodeSwap(tx *types.Transaction, version string) (*entity.SwapTransaction,
 			DecodeSwapTokensForExactTokens(data, version, swapTransactionResult)
 		case v2.SwapExactTokensForETH:
 			DecodeSwapExactTokensForETH(data, swapTransactionResult)
+		case v2.SwapETHForExactTokens:
+			DecodeSwapETHForExactTokens(data, swapTransactionResult)
 		default:
 			fmt.Println("not supported yet")
 		}
@@ -500,6 +502,48 @@ func DecodeSwapExactTokensForETH(data []byte, swapTransactionResult *entity.Swap
 
 	swapTransactionResult.AmountIn = amountIn
 	swapTransactionResult.AmountOutMin = amountOutMin
+	swapTransactionResult.TokenPathFrom = tokenPathFrom
+	swapTransactionResult.TokenPathTo = tokenPathTo
+	return nil
+}
+
+/*
+	https://dashboard.tenderly.co/tx/mainnet/0x8736fd7b40cc01eaf145cb274a33ef4657af81dd9f48fad5bad99fb1bdd64088
+	Function: swapETHForExactTokens(uint256 amountOut, address[] path, address to, uint256 deadline)
+
+	MethodID: 0xfb3bdb41
+	[0]:  000000000000000000000000000000000000000000000000000003aa29f07d58
+	[1]:  0000000000000000000000000000000000000000000000000000000000000080
+	[2]:  00000000000000000000000011a8286db1eb78e4d0d3409be5ddafac2966cc0b
+	[3]:  000000000000000000000000000000000000000000000000000000006750f480
+	[4]:  0000000000000000000000000000000000000000000000000000000000000002
+	[5]:  000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
+	[6]:  000000000000000000000000e0805c80588913c1c2c89ea4a8dcf485d4038a3e
+
+	{
+		"amountOut": "4029382950232",
+		"path": [
+			"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+			"0xe0805c80588913c1c2c89ea4a8dcf485d4038a3e"
+		],
+		"to": "0x11a8286db1eb78e4d0d3409be5ddafac2966cc0b",
+		"deadline": "1733358720"
+	}
+
+*/
+
+func DecodeSwapETHForExactTokens(data []byte, swapTransactionResult *entity.SwapTransaction) error {
+
+	data = data[4:]
+
+	// [0] amountOut
+	amountOut := new(big.Int).SetBytes(data[:32]).String()
+
+	// [5] and [6] are token addresses in the path
+	tokenPathFrom := fmt.Sprintf("0x%s", common.Bytes2Hex(data[160:192])[24:]) // First token in path
+	tokenPathTo := fmt.Sprintf("0x%s", common.Bytes2Hex(data[192:224])[24:])   // Second token in path
+
+	swapTransactionResult.AmountOut = amountOut
 	swapTransactionResult.TokenPathFrom = tokenPathFrom
 	swapTransactionResult.TokenPathTo = tokenPathTo
 	return nil

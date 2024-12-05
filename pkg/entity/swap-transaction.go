@@ -27,4 +27,8 @@ type SwapTransaction struct {
 
 	// Uniswap V3
 	Fee string `db:"fee"`
+
+	// Uniswap V3 Multicall
+	NumberOfCalls int `db:"number_of_calls"`
+	CallsData []string 
 }

@@ -103,6 +103,86 @@ func DecodeSwap(tx *types.Transaction, version string) (*entity.SwapTransaction,
 	return swapTransactionResult, nil
 }
 
+func DecodeSwapGeneric(data []byte, version string, swapTransactionResult *entity.SwapTransaction) error {
+	methodID := fmt.Sprintf("%x", data[:4])
+
+	// Debug prints
+	// fmt.Println("Raw data length:", len(data))
+	// fmt.Printf("Raw data hex: 0x%x\n", data)
+	//
+
+	var swapMethod interface{}
+	var ok bool
+	var swapMethodName string
+	if version == "V2" {
+		swapMethod, ok = v2.GetV2MethodFromID(methodID)
+		swapMethodName = swapMethod.(v2.UniswapV2SwapMethod).String()
+	} else {
+		swapMethod, ok = v3.GetV3MethodFromID(methodID)
+		swapMethodName = swapMethod.(v3.UniswapV3Method).String()
+	}
+	if !ok {
+		return fmt.Errorf("unknown swap method: %s", methodID)
+	}
+
+    // Update existing struct instead of creating new one
+    swapTransactionResult.AmountIn = "0"
+    swapTransactionResult.Version = version
+    swapTransactionResult.MethodID = methodID
+	swapTransactionResult.MethodName = swapMethodName
+	swapTransactionResult.Exchange = "Uniswap"
+
+	switch swapMethod := swapMethod.(type) {
+	case v2.UniswapV2SwapMethod:
+		// fmt.Println("V2 swap method")
+		// Lets do a switch for all the v2 swap methods
+		switch swapMethod {
+		case v2.SwapExactTokensForTokens:
+			DecodeSwapExactTokensForTokens(data, version, swapTransactionResult)
+		case v2.SwapExactTokensForTokensSupportingFeeOnTransferTokens:
+			DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
+		case v2.SwapExactTokensForETHSupportingFeeOnTransferTokens:
+			DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
+		case v2.AddLiquidityETH:
+			DecodeAddLiquidityETH(data, version, swapTransactionResult)
+		case v2.RemoveLiquidityETHWithPermit:
+			DecodeRemoveLiquidityETHWithPermit(data, version, swapTransactionResult)
+		case v2.RemoveLiquidityETH:
+			DecodeRemoveLiquidityETH(data, version, swapTransactionResult)
+		case v2.RemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens:
+			DecodeRemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
+		case v2.SwapExactETHForTokensSupportingFeeOnTransferTokens:
+			DecodeSwapExactETHForTokensSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
+		case v2.SwapExactETHForTokens:
+			// DecodeSwapExactETHForTokens(data, version, swapTransactionResult)
+		case v2.SwapTokensForExactTokens:
+			DecodeSwapTokensForExactTokens(data, version, swapTransactionResult)
+		case v2.SwapExactTokensForETH:
+			DecodeSwapExactTokensForETH(data, swapTransactionResult)
+		case v2.SwapETHForExactTokens:
+			DecodeSwapETHForExactTokens(data, swapTransactionResult)
+		default:
+			fmt.Println("not supported yet")
+		}
+
+	case v3.UniswapV3Method:
+		fmt.Println("V3 swap method")
+		// Lets do a switch for all the v3 swap methods
+		switch swapMethod {
+		case v3.ExactInputSingle:
+			DecodeExactInputSingle(data, swapTransactionResult)
+		case v3.ExactInput:
+			DecodeExactInput(data, swapTransactionResult)
+		case v3.ExactOutputSingle:
+			DecodeExactOutputSingle(data, swapTransactionResult)
+		default:
+			fmt.Println("not supported yet")
+		}
+	}
+
+	return nil
+}
+
 /*
 * function for SwapExactTokensForTokens
 // e.g

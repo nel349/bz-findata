@@ -11,7 +11,11 @@ const (
     ExactInputSingle   UniswapV3Method = "414bf389"
     ExactOutput        UniswapV3Method = "f28c0498"
     ExactOutputSingle  UniswapV3Method = "db3e2198"
-    
+
+    // Additional methods
+    SweepToken         UniswapV3Method = "49404b7c"
+    SweepTokenTo       UniswapV3Method = "49404b7d"
+
     // Multicall methods often used for swaps
     Multicall          UniswapV3Method = "ac9650d8"
     MulticallWithValue UniswapV3Method = "5ae401dc"
@@ -34,6 +38,10 @@ func GetV3MethodFromID(methodID string) (UniswapV3Method, bool) {
         return Multicall, true
     case string(MulticallWithValue):
         return MulticallWithValue, true
+    case string(SweepToken):
+        return SweepToken, true
+    case string(SweepTokenTo):
+        return SweepTokenTo, true
     default:
         return "", false
     }
@@ -54,6 +62,10 @@ func (m UniswapV3Method) String() string {
         return "Multicall"
     case MulticallWithValue:
         return "MulticallWithValue"
+    case SweepToken:
+        return "SweepToken"
+    case SweepTokenTo:
+        return "SweepTokenTo"
     default:
         return "Unknown"
     }

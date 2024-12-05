@@ -21,6 +21,10 @@ type SwapTransaction struct {
 
 	Liquidity          string  `db:"liquidity"`
 
+	// v2 swapTokensForExactTokens
+	AmountOut        string `db:"amount_out"`
+	AmountInMax      string `db:"amount_in_max"`
+
 	// Uniswap V3
 	Fee string `db:"fee"`
 }

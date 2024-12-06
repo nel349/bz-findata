@@ -311,6 +311,36 @@ func TestDecodeSwapV2(t *testing.T) {
 		}
 	})
 
+	t.Run("Test DecodeSwapTokensForExactETH", func(t *testing.T) {
+		data = common.FromHex("0x4a25d94a0000000000000000000000000000000000000000000000000473c8321cbe3b23ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000f604ec052a32eb53aaa3b104993bc4d5b6132a52000000000000000000000000000000000000000000000000000000006753615900000000000000000000000000000000000000000000000000000000000000020000000000000000000000006a4402a535d74bd0c9cdb5ce2d51822fc9f6620e000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
+
+		err := DecodeSwapTokensForExactETH(data, swapTransactionResult)
+		checkSwapNotNil(t, err, swapTransactionResult)
+
+		expected := &entity.SwapTransaction{
+			AmountOut:     "320820116029586211",
+			AmountInMax:   "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+			TokenPathFrom: "0x6a4402a535d74bd0c9cdb5ce2d51822fc9f6620e",
+			TokenPathTo:   "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+		}
+
+		if expected.AmountOut != swapTransactionResult.AmountOut {
+			t.Errorf("Amount Out does not match expected value %v, got %v", expected.AmountOut, swapTransactionResult.AmountOut)
+		}
+
+		if expected.AmountInMax != swapTransactionResult.AmountInMax {
+			t.Errorf("Amount In Max does not match expected value %v, got %v", expected.AmountInMax, swapTransactionResult.AmountInMax)
+		}
+
+		if toLowerCaseHex(expected.TokenPathFrom) != toLowerCaseHex(swapTransactionResult.TokenPathFrom) {
+			t.Errorf("Token Path From does not match expected value %v, got %v", expected.TokenPathFrom, swapTransactionResult.TokenPathFrom)
+		}
+
+		if toLowerCaseHex(expected.TokenPathTo) != toLowerCaseHex(swapTransactionResult.TokenPathTo) {
+			t.Errorf("Token Path To does not match expected value %v, got %v", expected.TokenPathTo, swapTransactionResult.TokenPathTo)
+		}
+	})
+
 }
 
 func checkSwapNotNil(t *testing.T, err error, swapTransaction *entity.SwapTransaction) {

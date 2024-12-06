@@ -83,6 +83,8 @@ func DecodeSwapGeneric(data []byte, version string, swapTransactionResult *entit
 			DecodeSwapETHForExactTokens(data, swapTransactionResult)
 		case v2.RemoveLiquidity:
 			DecodeRemoveLiquidity(data, swapTransactionResult)
+		case v2.SwapTokensForExactETH:
+			DecodeSwapTokensForExactETH(data, swapTransactionResult)
 		default:
 			fmt.Println("not supported yet")
 		}
@@ -644,6 +646,54 @@ func DecodeSwapExactETHForTokens(data []byte, version string, swapTransactionRes
 	tokenPathTo := fmt.Sprintf("0x%s", common.Bytes2Hex(data[192:224])[24:])   // Second token in path
 
 	swapTransactionResult.AmountOutMin = amountOutMin
+	swapTransactionResult.TokenPathFrom = tokenPathFrom
+	swapTransactionResult.TokenPathTo = tokenPathTo
+	return nil
+}
+
+/*
+	https://dashboard.tenderly.co/tx/mainnet/0xaae2b315f040eb9f342e7f561add662b881792ccef3c09120645c652f81bad8e
+	Function: swapTokensForExactETH(uint256 amountOut, uint256 amountInMax, address[] path, address to, uint256 deadline)
+
+	MethodID: 0x4a25d94a
+	[0]:  0000000000000000000000000000000000000000000000000473c8321cbe3b23
+	[1]:  ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+	[2]:  00000000000000000000000000000000000000000000000000000000000000a0
+	[3]:  000000000000000000000000f604ec052a32eb53aaa3b104993bc4d5b6132a52
+	[4]:  0000000000000000000000000000000000000000000000000000000067536159
+	[5]:  0000000000000000000000000000000000000000000000000000000000000002
+	[6]:  0000000000000000000000006a4402a535d74bd0c9cdb5ce2d51822fc9f6620e
+	[7]:  000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
+
+
+	{
+		"amountOut": "320820116029586211",
+		"amountInMax": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+		"path": [
+			"0x6a4402a535d74bd0c9cdb5ce2d51822fc9f6620e",
+			"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+		],
+		"to": "0xf604ec052a32eb53aaa3b104993bc4d5b6132a52",
+		"deadline": "1733517657"
+	}
+*/
+
+func DecodeSwapTokensForExactETH(data []byte, swapTransactionResult *entity.SwapTransaction) error {
+
+	data = data[4:]
+
+	// [0] amountOut
+	amountOut := new(big.Int).SetBytes(data[:32]).String()
+
+	// [1] amountInMax
+	amountInMax := new(big.Int).SetBytes(data[32:64]).String()
+
+	// [6] and [7] are token addresses in the path
+	tokenPathFrom := fmt.Sprintf("0x%s", common.Bytes2Hex(data[192:224])[24:]) // First token in path
+	tokenPathTo := fmt.Sprintf("0x%s", common.Bytes2Hex(data[224:256])[24:])   // Second token in path
+
+	swapTransactionResult.AmountOut = amountOut
+	swapTransactionResult.AmountInMax = amountInMax
 	swapTransactionResult.TokenPathFrom = tokenPathFrom
 	swapTransactionResult.TokenPathTo = tokenPathTo
 	return nil

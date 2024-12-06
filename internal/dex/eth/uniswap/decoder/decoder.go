@@ -13,14 +13,23 @@ import (
 	"github.com/nel349/bz-findata/pkg/entity"
 )
 
-func DecodeSwap(tx *types.Transaction, version string) (*entity.SwapTransaction, error) {
+func DecodeSwap(tx *types.Transaction, version string) ([]*entity.SwapTransaction, error) {
 	data := tx.Data()
 
-	swapTransactionResult := &entity.SwapTransaction{}	
-
-	DecodeSwapGeneric(data, version, swapTransactionResult)
-
-	return swapTransactionResult, nil
+    // Check if this is a multicall
+    methodID := fmt.Sprintf("%x", data[:4])
+    if methodID == v3.Multicall.Hex() {
+        return DecodeMulticall(data)
+    }
+    
+    // For non-multicall transactions, wrap single transaction in array
+    swapTransactionResult := &entity.SwapTransaction{}    
+    err := DecodeSwapGeneric(data, version, swapTransactionResult)
+    if err != nil {
+        return nil, err
+    }
+    
+    return []*entity.SwapTransaction{swapTransactionResult}, nil
 }
 
 func DecodeSwapGeneric(data []byte, version string, swapTransactionResult *entity.SwapTransaction) error {

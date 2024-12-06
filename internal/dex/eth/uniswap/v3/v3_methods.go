@@ -1,6 +1,9 @@
 package v3
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // UniswapV3Method represents different Uniswap V3 swap method types
 type UniswapV3Method string
@@ -69,6 +72,11 @@ func (m UniswapV3Method) String() string {
     default:
         return "Unknown"
     }
+}
+
+// Hex returns the hex representation of the method
+func (m UniswapV3Method) Hex() string {
+    return fmt.Sprintf("%x", m)
 }
 
 // IsMulticall returns true if the method is a multicall variant

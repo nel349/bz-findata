@@ -8,7 +8,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 
-	// "github.com/nel349/bz-findata/internal/dex/eth/defi_llama"
 	v2 "github.com/nel349/bz-findata/internal/dex/eth/uniswap/v2"
 	v3 "github.com/nel349/bz-findata/internal/dex/eth/uniswap/v3"
 	"github.com/nel349/bz-findata/pkg/entity"
@@ -16,91 +15,10 @@ import (
 
 func DecodeSwap(tx *types.Transaction, version string) (*entity.SwapTransaction, error) {
 	data := tx.Data()
-	methodID := fmt.Sprintf("%x", data[:4])
 
-	// Debug prints
-	// fmt.Println("Raw data length:", len(data))
-	// fmt.Printf("Raw data hex: 0x%x\n", data)
-	//
+	swapTransactionResult := &entity.SwapTransaction{}	
 
-	var swapMethod interface{}
-	var ok bool
-	var swapMethodName string
-	if version == "V2" {
-		swapMethod, ok = v2.GetV2MethodFromID(methodID)
-		swapMethodName = swapMethod.(v2.UniswapV2SwapMethod).String()
-	} else {
-		swapMethod, ok = v3.GetV3MethodFromID(methodID)
-		swapMethodName = swapMethod.(v3.UniswapV3Method).String()
-	}
-	if !ok {
-		return nil, fmt.Errorf("unknown swap method: %s", methodID)
-	}
-
-	// Debug prints
-	// fmt.Printf("Swap Method: %s\n", swapMethod)
-	// fmt.Println("First 4 bytes (method signature):", methodID)
-
-	swapTransactionResult := &entity.SwapTransaction{
-		Value:      GetEthValue(tx.Value()),
-		AmountIn:   "0",
-		ToAddress:  tx.To().Hex(),
-		Version:    version,
-		TxHash:     tx.Hash().Hex(),
-		MethodID:   methodID,
-		MethodName: swapMethodName,
-		Exchange:   "Uniswap",
-	}
-
-	switch swapMethod := swapMethod.(type) {
-	case v2.UniswapV2SwapMethod:
-		// fmt.Println("V2 swap method")
-		// Lets do a switch for all the v2 swap methods
-		switch swapMethod {
-		case v2.SwapExactTokensForTokens:
-			DecodeSwapExactTokensForTokens(data, version, swapTransactionResult)
-		case v2.SwapExactTokensForTokensSupportingFeeOnTransferTokens:
-			DecodeSwapExactTokensForTokensSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
-		case v2.SwapExactTokensForETHSupportingFeeOnTransferTokens:
-			DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
-		case v2.AddLiquidityETH:
-			DecodeAddLiquidityETH(data, version, swapTransactionResult)
-		case v2.RemoveLiquidityETHWithPermit:
-			DecodeRemoveLiquidityETHWithPermit(data, version, swapTransactionResult)
-		case v2.RemoveLiquidityETH:
-			DecodeRemoveLiquidityETH(data, version, swapTransactionResult)
-		case v2.RemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens:
-			DecodeRemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
-		case v2.SwapExactETHForTokensSupportingFeeOnTransferTokens:
-			DecodeSwapExactETHForTokensSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
-		case v2.SwapExactETHForTokens:
-			// DecodeSwapExactETHForTokens(data, version, swapTransactionResult)
-		case v2.SwapTokensForExactTokens:
-			DecodeSwapTokensForExactTokens(data, version, swapTransactionResult)
-		case v2.SwapExactTokensForETH:
-			DecodeSwapExactTokensForETH(data, swapTransactionResult)
-		case v2.SwapETHForExactTokens:
-			DecodeSwapETHForExactTokens(data, swapTransactionResult)
-		default:
-			fmt.Println("not supported yet")
-		}
-
-	case v3.UniswapV3Method:
-		fmt.Println("V3 swap method")
-		// Lets do a switch for all the v3 swap methods
-		switch swapMethod {
-		case v3.ExactInputSingle:
-			DecodeExactInputSingle(data, swapTransactionResult)
-		case v3.ExactInput:
-			DecodeExactInput(data, swapTransactionResult)
-		case v3.ExactOutputSingle:
-			DecodeExactOutputSingle(data, swapTransactionResult)
-		case v3.Multicall:
-			DecodeMulticall(data)
-		default:
-			fmt.Println("not supported yet")
-		}
-	}
+	DecodeSwapGeneric(data, version, swapTransactionResult)
 
 	return swapTransactionResult, nil
 }
@@ -156,13 +74,15 @@ func DecodeSwapGeneric(data []byte, version string, swapTransactionResult *entit
 		case v2.SwapExactETHForTokensSupportingFeeOnTransferTokens:
 			DecodeSwapExactETHForTokensSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
 		case v2.SwapExactETHForTokens:
-			// DecodeSwapExactETHForTokens(data, version, swapTransactionResult)
+			DecodeSwapExactETHForTokens(data, version, swapTransactionResult)
 		case v2.SwapTokensForExactTokens:
 			DecodeSwapTokensForExactTokens(data, version, swapTransactionResult)
 		case v2.SwapExactTokensForETH:
 			DecodeSwapExactTokensForETH(data, swapTransactionResult)
 		case v2.SwapETHForExactTokens:
 			DecodeSwapETHForExactTokens(data, swapTransactionResult)
+		case v2.RemoveLiquidity:
+			DecodeRemoveLiquidity(data, swapTransactionResult)
 		default:
 			fmt.Println("not supported yet")
 		}
@@ -682,5 +602,49 @@ func DecodeRemoveLiquidity(data []byte, swapTransactionResult *entity.SwapTransa
 	swapTransactionResult.Liquidity = liquidity
 	swapTransactionResult.AmountAMin = amountAMin
 	swapTransactionResult.AmountBMin = amountBMin
+	return nil
+}
+
+/*
+
+	https://github.com/nel349/bz-findata/issues/27
+
+	https://dashboard.tenderly.co/tx/mainnet/0x84ccd996bc71ab8bae0e20ed4c0f3a87a8e822f430425b17800bfa37b5b5cb1e
+	Function: swapExactETHForTokens(uint256 amountOutMin, address[] path, address to, uint256 deadline)
+
+	MethodID: 0x7ff36ab5
+	[0]:  00000000000000000000000000000000000000000000000589a74db4fba713f1
+	[1]:  0000000000000000000000000000000000000000000000000000000000000080
+	[2]:  000000000000000000000000659402c9c3eb08503ab3ecbaff5f384f6f7d62af
+	[3]:  0000000000000000000000000000000000000000000000000000000067516343
+	[4]:  0000000000000000000000000000000000000000000000000000000000000002
+	[5]:  000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
+	[6]:  0000000000000000000000006019dcb2d0b3e0d1d8b0ce8d16191b3a4f93703d
+
+	{
+		"amountOutMin": "102152702512566047729",
+		"path": [
+			"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+			"0x6019dcb2d0b3e0d1d8b0ce8d16191b3a4f93703d"
+		],
+		"to": "0x659402c9c3eb08503ab3ecbaff5f384f6f7d62af",
+		"deadline": "1733387075"
+	}
+*/
+
+func DecodeSwapExactETHForTokens(data []byte, version string, swapTransactionResult *entity.SwapTransaction) error {
+
+	data = data[4:]
+
+	// [0] amountOutMin
+	amountOutMin := new(big.Int).SetBytes(data[:32]).String()
+
+	// [5] and [6] are token addresses in the path
+	tokenPathFrom := fmt.Sprintf("0x%s", common.Bytes2Hex(data[160:192])[24:]) // First token in path
+	tokenPathTo := fmt.Sprintf("0x%s", common.Bytes2Hex(data[192:224])[24:])   // Second token in path
+
+	swapTransactionResult.AmountOutMin = amountOutMin
+	swapTransactionResult.TokenPathFrom = tokenPathFrom
+	swapTransactionResult.TokenPathTo = tokenPathTo
 	return nil
 }

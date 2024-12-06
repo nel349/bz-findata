@@ -95,6 +95,8 @@ func DecodeSwap(tx *types.Transaction, version string) (*entity.SwapTransaction,
 			DecodeExactInput(data, swapTransactionResult)
 		case v3.ExactOutputSingle:
 			DecodeExactOutputSingle(data, swapTransactionResult)
+		case v3.Multicall:
+			DecodeMulticall(data)
 		default:
 			fmt.Println("not supported yet")
 		}
@@ -626,5 +628,59 @@ func DecodeSwapETHForExactTokens(data []byte, swapTransactionResult *entity.Swap
 	swapTransactionResult.AmountOut = amountOut
 	swapTransactionResult.TokenPathFrom = tokenPathFrom
 	swapTransactionResult.TokenPathTo = tokenPathTo
+	return nil
+}
+
+/*
+
+	https://dashboard.tenderly.co/tx/mainnet/0x93127ec9b1c13815c6aca9363c737fcb5f874c6f8ddfc6a795b01308d5f17225
+	Function: removeLiquidity(address tokenA, address tokenB, uint256 liquidity, uint256 amountAMin, uint256 amountBMin, address to, uint256 deadline)
+
+	MethodID: 0xbaa2abde
+	[0]:  00000000000000000000000099ec69f6624abd625782e2127f7ca23432aab7a1
+	[1]:  000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
+	[2]:  00000000000000000000000000000000000000000000000000048db1aa0d89d0
+	[3]:  000000000000000000000000000000000000000000000000000084dca2559ac8
+	[4]:  0000000000000000000000000000000000000000000000000027ce754fedea24
+	[5]:  000000000000000000000000ba8ed95797f9bf37c99f564d9aa26eeb1851bf1f
+	[6]:  00000000000000000000000000000000000000000000000000000000675164f2
+
+	{
+		"tokenA": "0x99ec69f6624abd625782e2127f7ca23432aab7a1",
+		"tokenB": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+		"liquidity": "1281694108584400",
+		"amountAMin": "146083151190728",
+		"amountBMin": "11204527339203108",
+		"to": "0xba8ed95797f9bf37c99f564d9aa26eeb1851bf1f",
+		"deadline": "1733387506"
+	}
+*/
+
+// TODO: consult return values for this function to get the actual amount of tokens removed
+func DecodeRemoveLiquidity(data []byte, swapTransactionResult *entity.SwapTransaction) error {
+
+	data = data[4:]
+
+	// [0] tokenA
+	tokenA := fmt.Sprintf("0x%s", common.Bytes2Hex(data[:32])[24:])
+
+	// [1] tokenB
+	tokenB := fmt.Sprintf("0x%s", common.Bytes2Hex(data[32:64])[24:])
+
+
+	// [2] liquidity
+	liquidity := new(big.Int).SetBytes(data[64:96]).String()
+
+	// [3] amountAMin
+	amountAMin := new(big.Int).SetBytes(data[96:128]).String()
+
+	// [4] amountBMin
+	amountBMin := new(big.Int).SetBytes(data[128:160]).String()
+
+	swapTransactionResult.TokenPathFrom = tokenA
+	swapTransactionResult.TokenPathTo = tokenB
+	swapTransactionResult.Liquidity = liquidity
+	swapTransactionResult.AmountAMin = amountAMin
+	swapTransactionResult.AmountBMin = amountBMin
 	return nil
 }

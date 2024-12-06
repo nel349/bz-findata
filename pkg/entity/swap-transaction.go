@@ -19,7 +19,10 @@ type SwapTransaction struct {
 	AmountTokenMin     string `db:"amount_token_min"`
 	AmountETHMin       string `db:"amount_eth_min"`
 
+	// Uniswap V2 remove liquidity
 	Liquidity          string  `db:"liquidity"`
+	AmountAMin         string  `db:"amount_a_min"`
+	AmountBMin         string  `db:"amount_b_min"`
 
 	// v2 swapTokensForExactTokens
 	AmountOut        string `db:"amount_out"`

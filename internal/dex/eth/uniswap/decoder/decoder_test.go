@@ -250,6 +250,41 @@ func TestDecodeSwapV2(t *testing.T) {
 		}
 	})
 
+	t.Run("Test DecodeRemoveLiquidity", func(t *testing.T) {
+		data = common.FromHex("0xbaa2abde00000000000000000000000099ec69f6624abd625782e2127f7ca23432aab7a1000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc200000000000000000000000000000000000000000000000000048db1aa0d89d0000000000000000000000000000000000000000000000000000084dca2559ac80000000000000000000000000000000000000000000000000027ce754fedea24000000000000000000000000ba8ed95797f9bf37c99f564d9aa26eeb1851bf1f00000000000000000000000000000000000000000000000000000000675164f2")
+
+		err := DecodeRemoveLiquidity(data, swapTransactionResult)
+		checkSwapNotNil(t, err, swapTransactionResult)
+
+		expected := &entity.SwapTransaction{
+			TokenPathFrom: "0x99ec69f6624abd625782e2127f7ca23432aab7a1",
+			TokenPathTo:   "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+			Liquidity:     "1281694108584400",
+			AmountAMin:    "146083151190728",
+			AmountBMin:    "11204527339203108",
+		}
+
+		if expected.TokenPathFrom != swapTransactionResult.TokenPathFrom {
+			t.Errorf("Token Path From does not match expected value %v, got %v", expected.TokenPathFrom, swapTransactionResult.TokenPathFrom)
+		}
+
+		if expected.TokenPathTo != swapTransactionResult.TokenPathTo {
+			t.Errorf("Token Path To does not match expected value %v, got %v", expected.TokenPathTo, swapTransactionResult.TokenPathTo)
+		}
+
+		if expected.Liquidity != swapTransactionResult.Liquidity {
+			t.Errorf("Liquidity does not match expected value %v, got %v", expected.Liquidity, swapTransactionResult.Liquidity)
+		}
+
+		if expected.AmountAMin != swapTransactionResult.AmountAMin {
+			t.Errorf("Amount A Min does not match expected value %v, got %v", expected.AmountAMin, swapTransactionResult.AmountAMin)
+		}
+
+		if expected.AmountBMin != swapTransactionResult.AmountBMin {
+			t.Errorf("Amount B Min does not match expected value %v, got %v", expected.AmountBMin, swapTransactionResult.AmountBMin)
+		}
+	})
+
 }
 
 func checkSwapNotNil(t *testing.T, err error, swapTransaction *entity.SwapTransaction) {

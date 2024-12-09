@@ -36,30 +36,50 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 	// Process each transaction
 	for _, swapTransaction := range swapTransactions {
 
-		// should be in use case interface. but for now, here
-		tokenInfoFrom, err := defi_llama.GetTokenMetadataFromDbOrDefiLlama(e.db, swapTransaction.TokenPathFrom, 15*time.Minute)
-		if err != nil {
-			fmt.Println("Error getting token metadata", "error", err)
-			// fmt.Println("Token path from", swapTransaction.TokenPathFrom)
-			return err
-		}
+		// Get token metadata based on operation type
+		var tokenInfoFrom, tokenInfoA, tokenInfoB entity.TokenInfo
+		var err error
 
-		if version == "V2" {
-			// if it is a token input
-			if _, ok := v2.GetV2MethodFromID(swapTransaction.MethodID); ok {
-				tokenAmount := decoder.ConvertToBigInt(swapTransaction.AmountIn)
-				swapTransaction.Value = decoder.GetUsdValueFromToken(tokenAmount, tokenInfoFrom.Price, int(tokenInfoFrom.Decimals))
+		if swapTransaction.MethodName == v2.AddLiquidity.String() || swapTransaction.MethodName == v2.RemoveLiquidity.String() {
+			// For liquidity operations, get both token A and B metadata
+			tokenInfoA, err = defi_llama.GetTokenMetadataFromDbOrDefiLlama(e.db, swapTransaction.TokenA, 15*time.Minute)
+			if err != nil {
+				fmt.Println("Error getting token A metadata", "error", err)
+				return err
+			}
+
+			tokenInfoB, err = defi_llama.GetTokenMetadataFromDbOrDefiLlama(e.db, swapTransaction.TokenB, 15*time.Minute)
+			if err != nil {
+				fmt.Println("Error getting token B metadata", "error", err)
+				return err
+			}
+		} else {
+			// For swap operations, get token metadata as before
+			tokenInfoFrom, err = defi_llama.GetTokenMetadataFromDbOrDefiLlama(e.db, swapTransaction.TokenPathFrom, 15*time.Minute)
+			if err != nil {
+				fmt.Println("Error getting token metadata", "error", err)
+				return err
 			}
 		}
 
-		if version == "V3" {
-			// if it is a token input
-			if _, ok := v3.GetV3MethodFromID(swapTransaction.MethodID); ok {
+		// Calculate value based on operation type
+		if swapTransaction.MethodName == v2.AddLiquidity.String() || swapTransaction.MethodName == v2.RemoveLiquidity.String() {
+			// Calculate combined value from both tokens
+			amountADesired := decoder.ConvertToBigInt(swapTransaction.AmountADesired)
+			amountBDesired := decoder.ConvertToBigInt(swapTransaction.AmountBDesired)
+
+			valueA := decoder.GetUsdValueFromToken(amountADesired, tokenInfoA.Price, int(tokenInfoA.Decimals))
+			valueB := decoder.GetUsdValueFromToken(amountBDesired, tokenInfoB.Price, int(tokenInfoB.Decimals))
+
+			swapTransaction.Value = valueA + valueB
+		} else if version == "V2" || version == "V3" {
+			// Original swap value calculation logic
+			if _, ok := v2.GetV2MethodFromID(swapTransaction.MethodID); ok && version == "V2" {
 				tokenAmount := decoder.ConvertToBigInt(swapTransaction.AmountIn)
 				swapTransaction.Value = decoder.GetUsdValueFromToken(tokenAmount, tokenInfoFrom.Price, int(tokenInfoFrom.Decimals))
-
-				// Debug
-				// fmt.Printf("DEBUG: Token amount: %s\n, price: %.9f\n, value: %.9f\n", swapTransaction.AmountIn, tokenInfoFrom.Price, swapTransaction.Value)
+			} else if _, ok := v3.GetV3MethodFromID(swapTransaction.MethodID); ok && version == "V3" {
+				tokenAmount := decoder.ConvertToBigInt(swapTransaction.AmountIn)
+				swapTransaction.Value = decoder.GetUsdValueFromToken(tokenAmount, tokenInfoFrom.Price, int(tokenInfoFrom.Decimals))
 			}
 		}
 

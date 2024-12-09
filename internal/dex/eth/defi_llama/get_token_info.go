@@ -100,7 +100,7 @@ func GetTokenMetadataFromDbOrDefiLlama(db *sqlx.DB, tokenAddress string, updateI
 		fmt.Println("Token metadata is stale, updating from API with address: ", strings.ToLower(tokenAddress))
 	} else {
 		fmt.Println("Token metadata not found in database, fetching from API with address: ", strings.ToLower(tokenAddress))
-		fmt.Println("Error: ", err)
+		fmt.Println(err)
 	}
 
 	// Fetch from defi llama api if data is stale or not found

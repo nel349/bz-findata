@@ -74,6 +74,8 @@ func DecodeSwapGeneric(data []byte, version string, swapTransactionResult *entit
 			DecodeSwapExactTokensForETHSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
 		case v2.AddLiquidityETH:
 			DecodeAddLiquidityETH(data, version, swapTransactionResult)
+		case v2.AddLiquidity:
+			DecodeAddLiquidity(data, version, swapTransactionResult)
 		case v2.RemoveLiquidityETHWithPermit:
 			DecodeRemoveLiquidityETHWithPermit(data, version, swapTransactionResult)
 		case v2.RemoveLiquidityETH:
@@ -705,5 +707,62 @@ func DecodeSwapTokensForExactETH(data []byte, swapTransactionResult *entity.Swap
 	swapTransactionResult.AmountInMax = amountInMax
 	swapTransactionResult.TokenPathFrom = tokenPathFrom
 	swapTransactionResult.TokenPathTo = tokenPathTo
+	return nil
+}
+
+/*
+	https://dashboard.tenderly.co/tx/mainnet/0x27d8fea3897b0d0acd15900b77bbb85a894256a65b23c9b9cf900526bb760caf
+	Function: addLiquidity(address tokenA, address tokenB, uint256 amountADesired, uint256 amountBDesired, uint256 amountAMin, uint256 amountBMin, address to, uint256 deadline)
+
+	MethodID: 0xe8e33700
+	[0]:  000000000000000000000000910812c44ed2a3b611e4b051d9d83a88d652e2dd
+	[1]:  000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
+	[2]:  000000000000000000000000000000000000000000003f5b6a1d988446cc0855
+	[3]:  0000000000000000000000000000000000000000000000000a11bc5997c59c50
+	[4]:  000000000000000000000000000000000000000000003f0a5143d908bc33f8ee
+	[5]:  0000000000000000000000000000000000000000000000000a04d8d92517d292
+	[6]:  0000000000000000000000007349bd4f327e697814ff96ac48861b44562ed722
+	[7]:  0000000000000000000000000000000000000000000000000000000067538242
+
+	{
+		"tokenA": "0x910812c44ed2a3b611e4b051d9d83a88d652e2dd",
+		"tokenB": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+		"amountADesired": "299195388566931453511765",
+		"amountBDesired": "725568107967781968",
+		"amountAMin": "297699411624096796244206",
+		"amountBMin": "721940267427943058",
+		"to": "0x7349bd4f327e697814ff96ac48861b44562ed722",
+		"deadline": "1733526082"
+	}
+*/
+
+func DecodeAddLiquidity(data []byte, version string, swapTransactionResult *entity.SwapTransaction) error {
+
+	data = data[4:]
+
+	// [0] tokenA
+	tokenA := fmt.Sprintf("0x%s", common.Bytes2Hex(data[:32])[24:])
+
+	// [1] tokenB
+	tokenB := fmt.Sprintf("0x%s", common.Bytes2Hex(data[32:64])[24:])
+
+	// [2] amountADesired
+	amountADesired := new(big.Int).SetBytes(data[64:96]).String()
+
+	// [3] amountBDesired
+	amountBDesired := new(big.Int).SetBytes(data[96:128]).String()
+
+	// [4] amountAMin
+	amountAMin := new(big.Int).SetBytes(data[128:160]).String()
+
+	// [5] amountBMin
+	amountBMin := new(big.Int).SetBytes(data[160:192]).String()
+
+	swapTransactionResult.TokenA = tokenA
+	swapTransactionResult.TokenB = tokenB
+	swapTransactionResult.AmountADesired = amountADesired
+	swapTransactionResult.AmountBDesired = amountBDesired
+	swapTransactionResult.AmountAMin = amountAMin
+	swapTransactionResult.AmountBMin = amountBMin
 	return nil
 }

@@ -14,12 +14,14 @@ type SwapTransaction struct {
 	MethodID      string `db:"method_id"`
 	MethodName    string `db:"method_name"`
 
-	// Uniswap V2 add liquidity
+	// Uniswap V2 add/remove liquidity
 	AmountTokenDesired string `db:"amount_token_desired"`
 	AmountTokenMin     string `db:"amount_token_min"`
 	AmountETHMin       string `db:"amount_eth_min"`
-
-	// Uniswap V2 remove liquidity
+	TokenA             string `db:"token_a"`
+	TokenB             string `db:"token_b"`
+	AmountADesired    string `db:"amount_a_desired"`
+	AmountBDesired     string `db:"amount_b_desired"`
 	Liquidity          string  `db:"liquidity"`
 	AmountAMin         string  `db:"amount_a_min"`
 	AmountBMin         string  `db:"amount_b_min"`

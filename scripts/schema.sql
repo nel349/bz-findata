@@ -54,6 +54,12 @@ CREATE TABLE IF NOT EXISTS `swap_transactions`
     `method_name` varchar(100) NULL,
     `liquidity` varchar(100) NULL, -- Uniswap V2 remove liquidity
     `last_updated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `token_a` varchar(42) NULL, -- Uniswap V2 add/remove liquidity
+    `token_b` varchar(42) NULL, -- Uniswap V2 add/remove liquidity
+    `amount_a_desired` varchar(100) NULL, -- Uniswap V2 add/remove liquidity
+    `amount_b_desired` varchar(100) NULL, -- Uniswap V2 add/remove liquidity
+    `amount_a_min` varchar(100) NULL, -- Uniswap V2 add/remove liquidity
+    `amount_b_min` varchar(100) NULL, -- Uniswap V2 add/remove liquidity
     CONSTRAINT swap_transactions_pk
         PRIMARY KEY (`tx_hash`)
 ) ENGINE = InnoDB;
@@ -69,3 +75,11 @@ CREATE TABLE IF NOT EXISTS `token_metadata` (
 ) ENGINE = InnoDB;
 -- ALTER TABLE token_metadata ADD COLUMN `last_updated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP;
 -- ALTER TABLE token_metadata DROP COLUMN `last_updated`;
+
+-- add the add_liquidity columns to the swap_transactions table
+-- ALTER TABLE swap_transactions ADD COLUMN `amount_a_desired` varchar(100) NULL;
+-- ALTER TABLE swap_transactions ADD COLUMN `amount_b_desired` varchar(100) NULL;
+-- ALTER TABLE swap_transactions ADD COLUMN `amount_a_min` varchar(100) NULL;
+-- ALTER TABLE swap_transactions ADD COLUMN `amount_b_min` varchar(100) NULL;
+-- ALTER TABLE swap_transactions ADD COLUMN `token_a` varchar(42) NULL;
+-- ALTER TABLE swap_transactions ADD COLUMN `token_b` varchar(42) NULL;

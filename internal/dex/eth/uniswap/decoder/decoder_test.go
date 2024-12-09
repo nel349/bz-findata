@@ -257,19 +257,19 @@ func TestDecodeSwapV2(t *testing.T) {
 		checkSwapNotNil(t, err, swapTransactionResult)
 
 		expected := &entity.SwapTransaction{
-			TokenPathFrom: "0x99ec69f6624abd625782e2127f7ca23432aab7a1",
-			TokenPathTo:   "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+			TokenA:         "0x99ec69f6624abd625782e2127f7ca23432aab7a1",
+			TokenB:         "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
 			Liquidity:     "1281694108584400",
 			AmountAMin:    "146083151190728",
 			AmountBMin:    "11204527339203108",
 		}
 
-		if expected.TokenPathFrom != swapTransactionResult.TokenPathFrom {
-			t.Errorf("Token Path From does not match expected value %v, got %v", expected.TokenPathFrom, swapTransactionResult.TokenPathFrom)
+		if expected.TokenA != swapTransactionResult.TokenA {
+			t.Errorf("Token Path From does not match expected value %v, got %v", expected.TokenA, swapTransactionResult.TokenA)
 		}
 
-		if expected.TokenPathTo != swapTransactionResult.TokenPathTo {
-			t.Errorf("Token Path To does not match expected value %v, got %v", expected.TokenPathTo, swapTransactionResult.TokenPathTo)
+		if expected.TokenB != swapTransactionResult.TokenB {
+			t.Errorf("Token Path To does not match expected value %v, got %v", expected.TokenB, swapTransactionResult.TokenB)
 		}
 
 		if expected.Liquidity != swapTransactionResult.Liquidity {
@@ -413,7 +413,6 @@ func TestDecodeSwapV2(t *testing.T) {
 			t.Errorf("Amount B Min does not match expected value %v, got %v", expected.AmountBMin, swapTransactionResult.AmountBMin)
 		}
 	})
-
 }
 
 func checkSwapNotNil(t *testing.T, err error, swapTransaction *entity.SwapTransaction) {

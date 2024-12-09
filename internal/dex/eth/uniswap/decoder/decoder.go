@@ -610,8 +610,8 @@ func DecodeRemoveLiquidity(data []byte, swapTransactionResult *entity.SwapTransa
 	// [4] amountBMin
 	amountBMin := new(big.Int).SetBytes(data[128:160]).String()
 
-	swapTransactionResult.TokenPathFrom = tokenA
-	swapTransactionResult.TokenPathTo = tokenB
+	swapTransactionResult.TokenA = tokenA
+	swapTransactionResult.TokenB = tokenB
 	swapTransactionResult.Liquidity = liquidity
 	swapTransactionResult.AmountAMin = amountAMin
 	swapTransactionResult.AmountBMin = amountBMin

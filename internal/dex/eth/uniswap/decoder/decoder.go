@@ -312,11 +312,11 @@ func DecodeAddLiquidityETH(data []byte, version string, swapTransactionResult *e
 	data = data[4:]
 
 	// [0] token address (20 bytes + 12 bytes padding)
-	tokenAddress := fmt.Sprintf("0x%s", common.Bytes2Hex(data[:20])[24:])
+	tokenAddress := fmt.Sprintf("0x%s", common.Bytes2Hex(data[0:32])[24:])
 
-	amountTokenDesired := new(big.Int).SetBytes(data[:32]).String()
-	amountTokenMin := new(big.Int).SetBytes(data[32:64]).String()
-	amountETHMin := new(big.Int).SetBytes(data[64:96]).String()
+	amountTokenDesired := new(big.Int).SetBytes(data[32:64]).String()
+	amountTokenMin := new(big.Int).SetBytes(data[64:96]).String()
+	amountETHMin := new(big.Int).SetBytes(data[96:128]).String()
 
 	swapTransactionResult.AmountTokenDesired = amountTokenDesired
 	swapTransactionResult.AmountTokenMin = amountTokenMin

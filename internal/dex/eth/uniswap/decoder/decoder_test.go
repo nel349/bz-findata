@@ -341,6 +341,39 @@ func TestDecodeSwapV2(t *testing.T) {
 		}
 	})
 
+	// test DecodeAddLiquidityETH
+	t.Run("Test DecodeAddLiquidityETH", func(t *testing.T) {
+
+		data = common.FromHex("0xf305d719000000000000000000000000728f30fa2f100742c7949d1961804fa8e0b1387d000000000000000000000000000000000000000000000389cbf4dbec81f400000000000000000000000000000000000000000000000003854489651071f1800000000000000000000000000000000000000000000000000006e25df1763291ff00000000000000000000000093f9a1ee83522bd206cccc875ccb1026b69dbaa0000000000000000000000000000000000000000000000000000000006753825c")
+
+		err := DecodeAddLiquidityETH(data, version, swapTransactionResult)
+		checkSwapNotNil(t, err, swapTransactionResult)
+
+		expected := &entity.SwapTransaction{
+			TokenPathTo: "0x728f30fa2f100742c7949d1961804fa8e0b1387d",
+			AmountTokenDesired: "16709000000000000000000",
+			AmountTokenMin: "16625455000000000000000",
+			AmountETHMin: "496062200615703039",
+		}
+
+		if expected.TokenPathTo != swapTransactionResult.TokenPathTo {
+			t.Errorf("Token Path To does not match expected value %v, got %v", expected.TokenPathTo, swapTransactionResult.TokenPathTo)
+		}
+
+		if expected.AmountTokenDesired != swapTransactionResult.AmountTokenDesired {
+			t.Errorf("Amount Token Desired does not match expected value %v, got %v", expected.AmountTokenDesired, swapTransactionResult.AmountTokenDesired)
+		}
+
+		if expected.AmountTokenMin != swapTransactionResult.AmountTokenMin {
+			t.Errorf("Amount Token Min does not match expected value %v, got %v", expected.AmountTokenMin, swapTransactionResult.AmountTokenMin)
+		}
+
+		if expected.AmountETHMin != swapTransactionResult.AmountETHMin {
+			t.Errorf("Amount ETH Min does not match expected value %v, got %v", expected.AmountETHMin, swapTransactionResult.AmountETHMin)
+		}
+
+	})
+
 }
 
 func checkSwapNotNil(t *testing.T, err error, swapTransaction *entity.SwapTransaction) {

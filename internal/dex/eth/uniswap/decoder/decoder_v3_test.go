@@ -277,4 +277,42 @@ func TestDecodeSwapV3(t *testing.T) {
 		}
 
 	})
+
+	t.Run("Test DecodeExactOutput", func(t *testing.T) {
+
+		data := common.FromHex("0xf28c0498000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000007d14b142cad1379e85682f4b2006cdfed38988d30000000000000000000000000000000000000000000000000000000067576d6400000000000000000000000000000000000000000000000000000002b8c73e8000000000000000000000000000000000000000000000000000000001a9fa43ae000000000000000000000000000000000000000000000000000000000000004277e06c9eccf2e797fd462a92b6d7642ef85b0a44000bb8c02aaa39b223fe8d0a0e5c4f27ead9083c756cc20001f4a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000000000000")
+
+		err := DecodeExactOutput(data, swapTransactionResult)
+		checkSwapNotNil(t, err, swapTransactionResult)
+
+		expected := &entity.SwapTransaction{
+			TokenPathFrom: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+			TokenPathTo:   "0x77e06c9eccf2e797fd462a92b6d7642ef85b0a44",
+			ToAddress:    "0x7d14b142cad1379e85682f4b2006cdfed38988d3",
+			AmountOut:    "11690000000",
+			AmountInMax: "7146718126",
+		}
+
+		if expected.TokenPathFrom != swapTransactionResult.TokenPathFrom {
+			t.Errorf("Token Path From does not match expected value %v, got %v", expected.TokenPathFrom, swapTransactionResult.TokenPathFrom)
+		}
+
+		if expected.TokenPathTo != swapTransactionResult.TokenPathTo {
+			t.Errorf("Token Path To does not match expected value %v, got %v", expected.TokenPathTo, swapTransactionResult.TokenPathTo)
+		}
+
+		if expected.ToAddress != swapTransactionResult.ToAddress {
+			t.Errorf("To Address does not match expected value %v, got %v", expected.ToAddress, swapTransactionResult.ToAddress)
+		}
+
+		if expected.AmountOut != swapTransactionResult.AmountOut {
+			t.Errorf("Amount Out does not match expected value %v, got %v", expected.AmountOut, swapTransactionResult.AmountOut)
+		}
+
+		if expected.AmountInMax != swapTransactionResult.AmountInMax {
+			t.Errorf("Amount In Max does not match expected value %v, got %v", expected.AmountInMax, swapTransactionResult.AmountInMax)
+		}
+
+	})
+
 }

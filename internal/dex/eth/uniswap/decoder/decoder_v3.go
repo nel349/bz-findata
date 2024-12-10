@@ -305,3 +305,91 @@ func DecodeDataArray(data []byte, swapTransactionResult *entity.SwapTransaction)
 
 	return nil
 }
+
+/*
+	https://dashboard.tenderly.co/tx/mainnet/0x4c431f853758f9f89e3b8eaa538ff7069e2fb0c53222db25e2fd93de344f781e?trace=0
+	Function: exactOutput(tuple params)
+
+	MethodID: 0xf28c0498
+	[0]:  0000000000000000000000000000000000000000000000000000000000000020
+	[1]:  00000000000000000000000000000000000000000000000000000000000000a0
+	[2]:  0000000000000000000000007d14b142cad1379e85682f4b2006cdfed38988d3
+	[3]:  0000000000000000000000000000000000000000000000000000000067576d64
+	[4]:  00000000000000000000000000000000000000000000000000000002b8c73e80
+	[5]:  00000000000000000000000000000000000000000000000000000001a9fa43ae
+	[6]:  0000000000000000000000000000000000000000000000000000000000000042
+	[7]:  77e06c9eccf2e797fd462a92b6d7642ef85b0a44000bb8c02aaa39b223fe8d0a
+	[8]:  0e5c4f27ead9083c756cc20001f4a0b86991c6218b36c1d19d4a2e9eb0ce3606
+	[9]:  eb48000000000000000000000000000000000000000000000000000000000000
+
+	{
+		"params": {
+			"path": "0x77e06c9eccf2e797fd462a92b6d7642ef85b0a44000bb8c02aaa39b223fe8d0a0e5c4f27ead9083c756cc20001f4a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+			"recipient": "0x7d14b142cad1379e85682f4b2006cdfed38988d3",
+			"deadline": "1733782884",
+			"amountOut": "11690000000",
+			"amountInMaximum": "7146718126"
+		}
+	}
+
+*/
+func DecodeExactOutput(data []byte, swapTransactionResult *entity.SwapTransaction) error {
+
+	data = data[4:]
+
+	// [0] first offset to the the path offset
+	firstOffset := new(big.Int).SetBytes(data[:32])
+
+	// [1] recipient,deadline,amountOut,amountInMaximum offset
+	secondOffset := new(big.Int).SetBytes(data[firstOffset.Uint64():firstOffset.Uint64() + 32])
+
+	newstart := firstOffset.Uint64() + 32
+
+	recipient := fmt.Sprintf("0x%s", common.Bytes2Hex(data[newstart:newstart + 32])[24:])
+	// deadline := fmt.Sprintf("0x%s", common.Bytes2Hex(data[secondOffset.Uint64() + 32:secondOffset.Uint64() + 64])[24:])
+	amountOut := new(big.Int).SetBytes(data[newstart + 64:newstart + 96])
+	amountInMaximum := new(big.Int).SetBytes(data[newstart + 96:newstart + 128])
+
+	swapTransactionResult.ToAddress = recipient
+	// swapTransactionResult.Deadline = deadline
+	swapTransactionResult.AmountOut = amountOut.String()
+	swapTransactionResult.AmountInMax = amountInMaximum.String()
+
+	// fmt.Println("recipient", recipient)
+	// fmt.Println("amountOut", amountOut)
+	// fmt.Println("amountInMaximum", amountInMaximum)
+
+	newstart = secondOffset.Uint64() + 32
+
+	// given the offsets, we can now get the next offset
+	thirdOffset := new(big.Int).SetBytes(data[newstart:newstart + 32])
+
+	// fmt.Println("firstOffset", firstOffset)
+	// fmt.Println("secondOffset", secondOffset)
+	// fmt.Println("thirdOffset", thirdOffset)
+
+
+	newstart = newstart + 32
+
+	// get the path
+	path := common.Bytes2Hex(data[newstart: newstart + thirdOffset.Uint64()])
+	// fmt.Printf("%s\n", path)
+	// lets split the path into tokenIn and tokenOut
+	// 0x77e06c9eccf2e797fd462a92b6d7642ef85b0a44000bb8c02aaa39b223fe8d0a0e5c4f27ead9083c756cc20001f4a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48
+	// tokenOut is the first 0x77e06c9eccf2e797fd462a92b6d7642ef85b0a44
+	// tokenIn is the last 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48
+
+	tokenOut := fmt.Sprintf("0x%s", path[0:40])
+	tokenIn := fmt.Sprintf("0x%s", path[len(path)-40:])
+
+	swapTransactionResult.TokenPathTo = tokenOut
+	swapTransactionResult.TokenPathFrom = tokenIn
+
+	// fmt.Println("tokenIn:", tokenIn)
+	// fmt.Println("tokenOut:", tokenOut)
+
+
+	return nil
+}
+
+

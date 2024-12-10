@@ -111,6 +111,8 @@ func DecodeSwapGeneric(data []byte, version string, swapTransactionResult *entit
 			DecodeExactInput(data, swapTransactionResult)
 		case v3.ExactOutputSingle:
 			DecodeExactOutputSingle(data, swapTransactionResult)
+		case v3.ExactOutput:
+			DecodeExactOutput(data, swapTransactionResult)
 		default:
 			fmt.Println("not supported yet")
 		}

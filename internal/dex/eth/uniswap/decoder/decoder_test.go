@@ -413,6 +413,59 @@ func TestDecodeSwapV2(t *testing.T) {
 			t.Errorf("Amount B Min does not match expected value %v, got %v", expected.AmountBMin, swapTransactionResult.AmountBMin)
 		}
 	})
+
+
+	/*
+		Function: addLiquidityETH(address token, uint256 amountTokenDesired, uint256 amountTokenMin, uint256 amountETHMin, address to, uint256 deadline)
+
+		MethodID: 0xf305d719
+		[0]:  00000000000000000000000009e4a242cdc18a54c34015f96a3c07058f8e1967
+		[1]:  0000000000000000000000000000000000000000033b2e3c9fd0803ce8000000
+		[2]:  000000000000000000000000000000000000000003370b7214c67f98c3000000
+		[3]:  0000000000000000000000000000000000000000000000008a1580485b230000
+		[4]:  00000000000000000000000013b2ef18dc68f4fbbcd515b0bfe59e2f594c91df
+		[5]:  0000000000000000000000000000000000000000000000000000000067591285
+
+		{
+			"token": "0x09e4a242cdc18a54c34015f96a3c07058f8e1967",
+			"amountTokenDesired": "1000000000000000000000000000",
+			"amountTokenMin": "995000000000000000000000000",
+			"amountETHMin": "9950000000000000000",
+			"to": "0x13b2ef18dc68f4fbbcd515b0bfe59e2f594c91df",
+			"deadline": "1733890693"
+		}
+	*/
+	t.Run("Test DecodeaAddLiquidityETH", func(t *testing.T) {
+
+		data := common.FromHex("0xf305d71900000000000000000000000009e4a242cdc18a54c34015f96a3c07058f8e19670000000000000000000000000000000000000000033b2e3c9fd0803ce8000000000000000000000000000000000000000000000003370b7214c67f98c30000000000000000000000000000000000000000000000000000008a1580485b23000000000000000000000000000013b2ef18dc68f4fbbcd515b0bfe59e2f594c91df0000000000000000000000000000000000000000000000000000000067591285")
+
+		err := DecodeAddLiquidityETH(data, version, swapTransactionResult)
+		checkSwapNotNil(t, err, swapTransactionResult)
+
+		expected := &entity.SwapTransaction{
+			TokenPathTo:        "0x09e4a242cdc18a54c34015f96a3c07058f8e1967",
+			AmountTokenDesired: "1000000000000000000000000000",
+			AmountTokenMin: "995000000000000000000000000",
+			AmountETHMin: "9950000000000000000",
+		}
+
+		if expected.TokenPathTo != swapTransactionResult.TokenPathTo {
+			t.Errorf("Token Path To does not match expected value %v, got %v", expected.TokenPathTo, swapTransactionResult.TokenPathTo)
+		}
+
+		if expected.AmountTokenDesired != swapTransactionResult.AmountTokenDesired {
+			t.Errorf("Amount Token Desired does not match expected value %v, got %v", expected.AmountTokenDesired, swapTransactionResult.AmountTokenDesired)
+		}
+
+		if expected.AmountTokenMin != swapTransactionResult.AmountTokenMin {
+			t.Errorf("Amount Token Min does not match expected value %v, got %v", expected.AmountTokenMin, swapTransactionResult.AmountTokenMin)
+		}
+
+		if expected.AmountETHMin != swapTransactionResult.AmountETHMin {
+			t.Errorf("Amount ETH Min does not match expected value %v, got %v", expected.AmountETHMin, swapTransactionResult.AmountETHMin)
+		}
+
+	})
 }
 
 func checkSwapNotNil(t *testing.T, err error, swapTransaction *entity.SwapTransaction) {

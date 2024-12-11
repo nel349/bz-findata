@@ -33,13 +33,13 @@ Function: exactInputSingle(tuple params)
 	    }
 
 		MethodID: 0x414bf389
-		[0]:  000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
-		[1]:  000000000000000000000000ee2a03aa6dacf51c18679c516ad5283d8e7c2637
-		[2]:  0000000000000000000000000000000000000000000000000000000000000bb8
-		[3]:  000000000000000000000000f5213a6a2f0890321712520b8048d9886c1a9900
-		[4]:  000000000000000000000000000000000000000000000000000000006736f0e4
-		[5]:  0000000000000000000000000000000000000000000000000b9eafe9ee6f4000
-		[6]:  000000000000000000000000000000000000000000000000000019fe199f2e10
+		[0]:  000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2 // tokenIn
+		[1]:  000000000000000000000000ee2a03aa6dacf51c18679c516ad5283d8e7c2637 // tokenOut
+		[2]:  0000000000000000000000000000000000000000000000000000000000000bb8 // fee
+		[3]:  000000000000000000000000f5213a6a2f0890321712520b8048d9886c1a9900 // recipient
+		[4]:  000000000000000000000000000000000000000000000000000000006736f0e4 // deadline
+		[5]:  0000000000000000000000000000000000000000000000000b9eafe9ee6f4000 // amountIn
+		[6]:  000000000000000000000000000000000000000000000000000019fe199f2e10 // amountOutMinimum
 		[7]:  0000000000000000000000000000000000000000000000000000000000000000
 
 		{
@@ -54,6 +54,17 @@ Function: exactInputSingle(tuple params)
 		    "sqrtPriceLimitX96": "0"
 		  }
 		}
+
+
+		// another example
+		000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
+		000000000000000000000000dac17f958d2ee523a2206206994597c13d831ec7
+		00000000000000000000000000000000000000000000000000000000000001f4 // fee
+		000000000000000000000000ead659a621741e7f4773637c6b738d0c16a9ddb0 // recipient
+		00000000000000000000000000000000000000000000000000000000675365d2 // deadline
+		0000000000000000000000000000000000000000000000004563918244f40000 // amountIn
+		0000000000000000000000000000000000000000000000000000000491c21cd7 // amountOutMinimum
+		0000000000000000000000000000000000000000000000000000000000000000
 */
 func DecodeExactInputSingle(data []byte, swapTransactionResult *entity.SwapTransaction) error {
 
@@ -70,9 +81,17 @@ func DecodeExactInputSingle(data []byte, swapTransactionResult *entity.SwapTrans
 	recipient := fmt.Sprintf("0x%s", common.Bytes2Hex(data[96:128])[24:])
 
 	// [4]: deadline
+	// deadline := fmt.Sprintf("0x%s", common.Bytes2Hex(data[128:160])[24:])
 	// [5]: amountIn e.g 0xb9eafe9ee6f4000 == 837300000000000000 and padding
 	amountIn := new(big.Int).SetBytes(data[160:192])
 
+	amountOut := new(big.Int).SetBytes(data[192:224])
+
+	// amountInHex := common.Bytes2Hex(data[160:192])
+	// fmt.Println("amountInHex", amountInHex)
+
+	// dataString := common.Bytes2Hex(data)
+	// fmt.Println("dataString", dataString)
 	// [6]: amountOutMinimum
 	// [7]: sqrtPriceLimitX96
 
@@ -80,6 +99,7 @@ func DecodeExactInputSingle(data []byte, swapTransactionResult *entity.SwapTrans
 	swapTransactionResult.TokenPathTo = tokenOut
 	swapTransactionResult.ToAddress = recipient
 	swapTransactionResult.AmountIn = amountIn.String()
+	swapTransactionResult.AmountOut = amountOut.String()
 
 	return nil
 }
@@ -236,6 +256,7 @@ func DecodeMulticall(data []byte) ([]*entity.SwapTransaction, error) {
 	for i := 0; i < swapTransactionResult.NumberOfCalls; i++ {
 		swapTransactions[i] = &entity.SwapTransaction{}  // Initialize each element
 		callData := common.FromHex(swapTransactionResult.CallsData[i])
+		swapTransactions[i].CallsData = swapTransactionResult.CallsData
 		err := DecodeSwapGeneric(callData, "V3", swapTransactions[i])
 		if err != nil {
 			return nil, err

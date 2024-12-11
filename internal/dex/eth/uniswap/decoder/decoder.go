@@ -18,7 +18,10 @@ func DecodeSwap(tx *types.Transaction, version string) ([]*entity.SwapTransactio
 
     // Check if this is a multicall
     methodID := fmt.Sprintf("%x", data[:4])
-    if methodID == v3.Multicall.Hex() {
+
+	// get the method name from the method id
+	methodName, ok := v3.GetV3MethodFromID(methodID)
+    if methodName.String() == v3.Multicall.String() && ok {
 		fmt.Println("Multicall detected")
         return DecodeMulticall(data)
     }

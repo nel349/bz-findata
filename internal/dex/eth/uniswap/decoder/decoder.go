@@ -16,24 +16,24 @@ import (
 func DecodeSwap(tx *types.Transaction, version string) ([]*entity.SwapTransaction, error) {
 	data := tx.Data()
 
-    // Check if this is a multicall
-    methodID := fmt.Sprintf("%x", data[:4])
+	// Check if this is a multicall
+	methodID := fmt.Sprintf("%x", data[:4])
 
 	// get the method name from the method id
 	methodName, ok := v3.GetV3MethodFromID(methodID)
-    if methodName.String() == v3.Multicall.String() && ok {
+	if methodName.String() == v3.Multicall.String() && ok {
 		fmt.Println("Multicall detected")
-        return DecodeMulticall(data)
-    }
-    
-    // For non-multicall transactions, wrap single transaction in array
-    swapTransactionResult := &entity.SwapTransaction{}    
-    err := DecodeSwapGeneric(data, version, swapTransactionResult)
-    if err != nil {
-        return nil, err
-    }
-    
-    return []*entity.SwapTransaction{swapTransactionResult}, nil
+		return DecodeMulticall(data)
+	}
+
+	// For non-multicall transactions, wrap single transaction in array
+	swapTransactionResult := &entity.SwapTransaction{}
+	err := DecodeSwapGeneric(data, version, swapTransactionResult)
+	if err != nil {
+		return nil, err
+	}
+
+	return []*entity.SwapTransaction{swapTransactionResult}, nil
 }
 
 func DecodeSwapGeneric(data []byte, version string, swapTransactionResult *entity.SwapTransaction) error {
@@ -58,10 +58,10 @@ func DecodeSwapGeneric(data []byte, version string, swapTransactionResult *entit
 		return fmt.Errorf("unknown swap method: %s", methodID)
 	}
 
-    // Update existing struct instead of creating new one
-    swapTransactionResult.AmountIn = "0"
-    swapTransactionResult.Version = version
-    swapTransactionResult.MethodID = methodID
+	// Update existing struct instead of creating new one
+	swapTransactionResult.AmountIn = "0"
+	swapTransactionResult.Version = version
+	swapTransactionResult.MethodID = methodID
 	swapTransactionResult.MethodName = swapMethodName
 	swapTransactionResult.Exchange = "Uniswap"
 
@@ -329,37 +329,37 @@ func DecodeAddLiquidityETH(data []byte, version string, swapTransactionResult *e
 	swapTransactionResult.AmountTokenDesired = amountTokenDesired
 	swapTransactionResult.AmountTokenMin = amountTokenMin
 	swapTransactionResult.AmountETHMin = amountETHMin
-	swapTransactionResult.TokenPathTo = tokenAddress // Address of the token to pair with ETH
+	swapTransactionResult.TokenPathTo = tokenAddress                                   // Address of the token to pair with ETH
+	swapTransactionResult.TokenPathFrom = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" // should be Eth
 	return nil
 }
 
 /*
-	Function: removeLiquidityETHWithPermit(address token, uint256 liquidity, uint256 amountTokenMin, uint256 amountETHMin, address to, uint256 deadline, bool approveMax, uint8 v, bytes32 r, bytes32 s)
+Function: removeLiquidityETHWithPermit(address token, uint256 liquidity, uint256 amountTokenMin, uint256 amountETHMin, address to, uint256 deadline, bool approveMax, uint8 v, bytes32 r, bytes32 s)
 
-	MethodID: 0xded9382a
-	[0]:  000000000000000000000000fe34cbcaef94a06a8fc1adce86d486f49af242ba
-	[1]:  00000000000000000000000000000000000000000000119707a239721536ed2a
-	[2]:  0000000000000000000000000000000000000000000000000000000000000000
-	[3]:  0000000000000000000000000000000000000000000000000000000000000000
-	[4]:  0000000000000000000000001072d3be58b71b386724c624890547499fe39b89
-	[5]:  00000000000000000000000000000000000000000000000000000000673e95b7
-	[6]:  0000000000000000000000000000000000000000000000000000000000000000
-	[7]:  000000000000000000000000000000000000000000000000000000000000001b
-	[8]:  ac42c5965bedf9500e171015c523074ac3162bf093ffd0627d51691a19abbae6
-	[9]:  386a09c71e9bbd14d91db91f9844c161f72753b1c84cf974b5f4fcbcae3d9418
+MethodID: 0xded9382a
+[0]:  000000000000000000000000fe34cbcaef94a06a8fc1adce86d486f49af242ba
+[1]:  00000000000000000000000000000000000000000000119707a239721536ed2a
+[2]:  0000000000000000000000000000000000000000000000000000000000000000
+[3]:  0000000000000000000000000000000000000000000000000000000000000000
+[4]:  0000000000000000000000001072d3be58b71b386724c624890547499fe39b89
+[5]:  00000000000000000000000000000000000000000000000000000000673e95b7
+[6]:  0000000000000000000000000000000000000000000000000000000000000000
+[7]:  000000000000000000000000000000000000000000000000000000000000001b
+[8]:  ac42c5965bedf9500e171015c523074ac3162bf093ffd0627d51691a19abbae6
+[9]:  386a09c71e9bbd14d91db91f9844c161f72753b1c84cf974b5f4fcbcae3d9418
 */
 func DecodeRemoveLiquidityETHWithPermit(data []byte, version string, swapTransactionResult *entity.SwapTransaction) error {
 	data = data[4:]
-
 
 	// [0] token address (20 bytes + 12 bytes padding)
 	tokenAddress := fmt.Sprintf("0x%s", common.Bytes2Hex(data[12:32]))
 
 	// [1] liquidity (uint256)
 	liquidity := fmt.Sprintf("%d", new(big.Int).SetBytes(data[54:64]))
-
-	swapTransactionResult.TokenPathFrom = tokenAddress
 	swapTransactionResult.Liquidity = liquidity
+	swapTransactionResult.TokenPathFrom = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" // should be Eth
+	swapTransactionResult.TokenPathTo = tokenAddress
 	return nil
 }
 
@@ -385,22 +385,22 @@ func DecodeRemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens(data []byte
 }
 
 /*
-	#####Receiving Eth for tokens####	
+	#####Receiving Eth for tokens####
 */
 
-
 /*
-	https://dashboard.tenderly.co/tx/mainnet/0xf798d58c2018c4c6b7f93c9373bd6f67e20a88793b7c7f9f679f768df0efb88c
-	Function: swapExactETHForTokensSupportingFeeOnTransferTokens(uint256 amountOutMin, address[] path, address to, uint256 deadline)
+https://dashboard.tenderly.co/tx/mainnet/0xf798d58c2018c4c6b7f93c9373bd6f67e20a88793b7c7f9f679f768df0efb88c
+Function: swapExactETHForTokensSupportingFeeOnTransferTokens(uint256 amountOutMin, address[] path, address to, uint256 deadline)
 
-	MethodID: 0xb6f9de95
-	[0]:  0000000000000000000000000000000000000000000000000004f2cf373add62
-	[1]:  0000000000000000000000000000000000000000000000000000000000000080
-	[2]:  00000000000000000000000076db926b75e225af64b954c95fef653926ea7965
-	[3]:  000000000000000000000000000000000000000000000000000001938f506963
-	[4]:  0000000000000000000000000000000000000000000000000000000000000002
-	[5]:  000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
-	[6]:  000000000000000000000000790336af90933aa7bd10d4534db6909507098440
+MethodID: 0xb6f9de95
+[0]:  0000000000000000000000000000000000000000000000000004f2cf373add62
+[1]:  0000000000000000000000000000000000000000000000000000000000000080
+[2]:  00000000000000000000000076db926b75e225af64b954c95fef653926ea7965
+[3]:  000000000000000000000000000000000000000000000000000001938f506963
+[4]:  0000000000000000000000000000000000000000000000000000000000000002
+[5]:  000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
+[6]:  000000000000000000000000790336af90933aa7bd10d4534db6909507098440
+
 	{
 		"amountOutMin": "1392871705599330",
 		"path": [
@@ -510,12 +510,11 @@ func DecodeSwapExactTokensForETH(data []byte, swapTransactionResult *entity.Swap
 
 	data = data[4:]
 
-	// [0] amountIn	
+	// [0] amountIn
 	amountIn := new(big.Int).SetBytes(data[:32]).String()
 
 	// [1] amountOutMin
 	amountOutMin := new(big.Int).SetBytes(data[32:64]).String()
-
 
 	// [6] and [7] are token addresses in the path
 	tokenPathFrom := fmt.Sprintf("0x%s", common.Bytes2Hex(data[192:224])[24:]) // First token in path
@@ -605,7 +604,6 @@ func DecodeRemoveLiquidity(data []byte, swapTransactionResult *entity.SwapTransa
 
 	// [1] tokenB
 	tokenB := fmt.Sprintf("0x%s", common.Bytes2Hex(data[32:64])[24:])
-
 
 	// [2] liquidity
 	liquidity := new(big.Int).SetBytes(data[64:96]).String()

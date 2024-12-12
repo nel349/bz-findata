@@ -41,35 +41,35 @@ import (
 */
 
 type MoralisResponse struct {
-	TokenName string `json:"tokenName"`
-	TokenSymbol string `json:"tokenSymbol"`
+	TokenName     string `json:"tokenName"`
+	TokenSymbol   string `json:"tokenSymbol"`
 	TokenDecimals string `json:"tokenDecimals"`
-	NativePrice struct {
-		Value string `json:"value"`
-		Decimals uint8 `json:"decimals"`
+	NativePrice   struct {
+		Value    string `json:"value"`
+		Decimals uint8  `json:"decimals"`
 	} `json:"nativePrice"`
-	UsdPrice float64 `json:"usdPrice"`
-	UsdPriceFormatted string `json:"usdPriceFormatted"`
+	UsdPrice          float64 `json:"usdPrice"`
+	UsdPriceFormatted string  `json:"usdPriceFormatted"`
 }
 
 func GetTokenInfoFromMoralis(tokenAddress string) (entity.TokenInfo, error) {
 	url := fmt.Sprintf("https://deep-index.moralis.io/api/v2.2/erc20/%s/price?chain=eth&include=percent_change", tokenAddress)
 
 	req, _ := http.NewRequest("GET", url, nil)
-  
+
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("X-API-Key", os.Getenv("MORALIS_API_KEY"))
-  
+
 	res, _ := http.DefaultClient.Do(req)
 
-	if res.StatusCode != 200 {
-		return entity.TokenInfo{}, fmt.Errorf("failed to get token info from Moralis")
+	if res.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(res.Body)
+		return entity.TokenInfo{}, fmt.Errorf("failed to get token info from Moralis: %d with error: %s", res.StatusCode, string(body))
 	}
-  
+
 	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
 
-	
 	var response MoralisResponse
 	err := json.Unmarshal(body, &response)
 	if err != nil {
@@ -78,7 +78,7 @@ func GetTokenInfoFromMoralis(tokenAddress string) (entity.TokenInfo, error) {
 
 	// Extract data from the response
 	// key := fmt.Sprintf("ethereum:%s", tokenAddress)
-	
+
 	return entity.TokenInfo{
 		Address:  tokenAddress,
 		Decimals: response.NativePrice.Decimals,

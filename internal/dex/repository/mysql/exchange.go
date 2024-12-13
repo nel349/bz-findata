@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
@@ -10,7 +11,6 @@ import (
 	"github.com/nel349/bz-findata/internal/dex/eth/defi_llama"
 	"github.com/nel349/bz-findata/internal/dex/eth/uniswap/decoder"
 	v2 "github.com/nel349/bz-findata/internal/dex/eth/uniswap/v2"
-	v3 "github.com/nel349/bz-findata/internal/dex/eth/uniswap/v3"
 	"github.com/nel349/bz-findata/pkg/entity"
 )
 
@@ -73,14 +73,42 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 
 			swapTransaction.Value = valueA + valueB
 		} else if version == "V2" || version == "V3" {
-			// Original swap value calculation logic
-			if _, ok := v2.GetV2MethodFromID(swapTransaction.MethodID); ok && version == "V2" {
-				tokenAmount := decoder.ConvertToBigInt(swapTransaction.AmountIn)
-				swapTransaction.Value = decoder.GetUsdValueFromToken(tokenAmount, tokenInfoFrom.Price, int(tokenInfoFrom.Decimals))
-			} else if _, ok := v3.GetV3MethodFromID(swapTransaction.MethodID); ok && version == "V3" {
-				tokenAmount := decoder.ConvertToBigInt(swapTransaction.AmountIn)
-				swapTransaction.Value = decoder.GetUsdValueFromToken(tokenAmount, tokenInfoFrom.Price, int(tokenInfoFrom.Decimals))
+			var tokenAmount *big.Int
+			var useNativeValue bool
+
+			// Check if method uses ETH as input
+			if method, ok := v2.GetV2MethodFromID(swapTransaction.MethodID); ok {
+				useNativeValue = method.IsETHInput()
 			}
+
+			if useNativeValue {
+				// For ETH input methods, use transaction value
+				tokenAmount = tx.Value()
+				// Get WETH price for value calculation
+				tokenInfoFrom, err = defi_llama.GetTokenMetadataFromDbOrDefiLlama(
+					e.db,
+					"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", // WETH address
+					15*time.Minute,
+				)
+			} else {
+				// For token input methods, use decoded amount
+				tokenAmount = decoder.ConvertToBigInt(swapTransaction.AmountIn)
+				tokenInfoFrom, err = defi_llama.GetTokenMetadataFromDbOrDefiLlama(
+					e.db,
+					swapTransaction.TokenPathFrom,
+					15*time.Minute,
+				)
+			}
+
+			if err != nil {
+				return err
+			}
+
+			swapTransaction.Value = decoder.GetUsdValueFromToken(
+				tokenAmount,
+				tokenInfoFrom.Price,
+				int(tokenInfoFrom.Decimals),
+			)
 		}
 
 		// fmt.Printf("TokenInfoFrom decimals: %d\n, symbol: %s\n, price: %.9f\n", tokenInfoFrom.Decimals, tokenInfoFrom.Symbol, tokenInfoFrom.Price)

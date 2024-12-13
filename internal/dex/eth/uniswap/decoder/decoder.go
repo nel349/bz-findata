@@ -711,6 +711,14 @@ func DecodeSwapTokensForExactETH(data []byte, swapTransactionResult *entity.Swap
 	swapTransactionResult.AmountInMax = amountInMax
 	swapTransactionResult.TokenPathFrom = tokenPathFrom
 	swapTransactionResult.TokenPathTo = tokenPathTo
+
+
+	/*
+	For exact output swaps, the actual input amount will be less than or equal to amountInMax
+	Using amountInMax gives us a conservative estimate of the maximum value being moved
+	This aligns with risk assessment and filtering purposes, as it represents the upper bound of value movement
+	*/
+	swapTransactionResult.AmountIn = amountInMax
 	return nil
 }
 

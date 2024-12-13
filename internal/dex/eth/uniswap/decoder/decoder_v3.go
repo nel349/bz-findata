@@ -371,6 +371,10 @@ func DecodeExactOutput(data []byte, swapTransactionResult *entity.SwapTransactio
 	amountOut := new(big.Int).SetBytes(data[newstart + 64:newstart + 96])
 	amountInMaximum := new(big.Int).SetBytes(data[newstart + 96:newstart + 128])
 
+	// The actual input amount will be less than or equal to amountInMaximum
+	// TODO also handle in output event swaps.
+	swapTransactionResult.AmountIn = amountInMaximum.String()
+
 	swapTransactionResult.ToAddress = recipient
 	// swapTransactionResult.Deadline = deadline
 	swapTransactionResult.AmountOut = amountOut.String()

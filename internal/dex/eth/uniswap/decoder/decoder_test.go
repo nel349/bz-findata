@@ -541,8 +541,39 @@ func TestDecodeSwapV2(t *testing.T) {
 		if expectedTransaction1.AmountTokenMin != swapTransactions[0].AmountTokenMin {
 			t.Errorf("Amount Token Min does not match expected value %v, got %v", expectedTransaction1.AmountTokenMin, swapTransactions[0].AmountTokenMin)
 		}
+	})
 
+	// Test DecodeSwap With RemoveLiquidity
+	// Lets make sure we decode TokenA and TokenB properly
+	t.Run("Test DecodeSwap With RemoveLiquidity", func(t *testing.T) {
+		
+		version := "V2"
+		data := common.FromHex("0xbaa2abde0000000000000000000000006b175474e89094c44da98b954eedeac495271d0f000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc20000000000000000000000000000000000000000000000004ef159a1bc7600e50000000000000000000000000000000000000000000000260fbe8f136f3af532000000000000000000000000000000000000000000000000027eb4840daaab41000000000000000000000000c47e5d32f7be0cc171740ebbb3f26f78488cd22f00000000000000000000000000000000000000000000000000000000675caf2e")
 
+		tx := types.NewTransaction(
+			0,                // nonce
+			common.Address{}, // to address
+			big.NewInt(0),    // value
+			0,                // gas limit
+			big.NewInt(0),    // gas price
+			data,             // data
+		)
+
+		swapTransactions, err := DecodeSwap(tx, version)
+		checkSwapNotNil(t, err, swapTransactions[0])
+
+		expectedTransaction1 := &entity.SwapTransaction{
+			TokenA: "0x6b175474e89094c44da98b954eedeac495271d0f",
+			TokenB: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+		}
+
+		if expectedTransaction1.TokenA != swapTransactions[0].TokenA {
+			t.Errorf("Token A does not match expected value %v, got %v", expectedTransaction1.TokenA, swapTransactions[0].TokenA)
+		}
+
+		if expectedTransaction1.TokenB != swapTransactions[0].TokenB {
+			t.Errorf("Token B does not match expected value %v, got %v", expectedTransaction1.TokenB, swapTransactions[0].TokenB)
+		}
 	})
 }
 

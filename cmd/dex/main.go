@@ -12,9 +12,9 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/nel349/bz-findata/config"
+	"github.com/nel349/bz-findata/internal/dex/eth/uniswap/decoder"
 	"github.com/nel349/bz-findata/internal/dex/repository"
 	"github.com/nel349/bz-findata/pkg/database/mysql"
-	"github.com/nel349/bz-findata/internal/dex/eth/uniswap/decoder"
 )
 
 const (
@@ -24,9 +24,9 @@ const (
 	// Uniswap V3 Router address
 	UniswapV3RouterAddress = "0xE592427A0AEce92De3Edee1F18E0157C05861564"
 
-	// Method signatures for swaps
-	SwapExactETHForTokens              = "0x7ff36ab5"
-	SwapExactETHForTokensSupportingFee = "0xb6f9de95"
+	// // Method signatures for swaps
+	// SwapExactETHForTokens              = "0x7ff36ab5"
+	// SwapExactETHForTokensSupportingFee = "0xb6f9de95"
 )
 
 func main() {
@@ -35,7 +35,7 @@ func main() {
 		<-ctx.Done()
 		cancel()
 	}()
-	
+
 	// Connect to your WSS endpoint
 	client, err := ethclient.Dial("wss://ethereum-mainnet.core.chainstack.com/52fe0d05347a608831b02990cf1de889")
 	if err != nil {
@@ -53,8 +53,6 @@ func main() {
 		log.Fatalf("failed database init: %v", err)
 	}
 	defer dbClient.CloseConnect()
-
-	
 
 	// Create a channel for new headers
 	headers := make(chan *types.Header)
@@ -119,7 +117,6 @@ func processBlock(client *ethclient.Client, header *types.Header, dexRepositorie
 				// Save to database
 				dexRepositories.SaveSwap(context.Background(), tx, version)
 			}
-
 
 			// fmt.Println("Chain ID: ", tx.ChainId().Uint64())
 			// fmt.Printf("Uniswap %s Transaction\n", version)

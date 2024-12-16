@@ -176,15 +176,21 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 					MethodID:           swapTransaction.MethodID,
 					MethodName:         swapTransaction.MethodName,
 					Liquidity:          swapTransaction.Liquidity,
+					TokenA:             swapTransaction.TokenA,
+					TokenB:             swapTransaction.TokenB,
+					AmountADesired:    swapTransaction.AmountADesired,
+					AmountBDesired:     swapTransaction.AmountBDesired,
+					AmountAMin:         swapTransaction.AmountAMin,
+					AmountBMin:         swapTransaction.AmountBMin,
 				},
 			)
 			if err != nil {
-				fmt.Println("Error inserting swap", "error", err)
+				fmt.Printf("error inserting swap: %v", err)
 			}
 			fmt.Printf("Swap inserted successfully: %s\n", swapTransaction.TxHash)
 
 		}
 	}
 
-	return fmt.Errorf("transaction is nil")
+	return nil
 }

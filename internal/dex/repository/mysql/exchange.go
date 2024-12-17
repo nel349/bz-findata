@@ -72,6 +72,14 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 			valueB := decoder.GetUsdValueFromToken(amountBDesired, tokenInfoB.Price, int(tokenInfoB.Decimals))
 
 			swapTransaction.Value = valueA + valueB
+		} else if swapTransaction.MethodName == v2.RemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens.String() {
+			amountAToken := decoder.ConvertToBigInt(swapTransaction.AmountTokenMin)
+			amountBToken := decoder.ConvertToBigInt(swapTransaction.AmountETHMin)
+
+			valueA := decoder.GetUsdValueFromToken(amountAToken, tokenInfoA.Price, int(tokenInfoA.Decimals))
+			valueB := decoder.GetUsdValueFromToken(amountBToken, tokenInfoB.Price, int(tokenInfoB.Decimals))
+
+			swapTransaction.Value = valueA + valueB
 		} else if version == "V2" || version == "V3" {
 			var tokenAmount *big.Int
 			var useNativeValue bool

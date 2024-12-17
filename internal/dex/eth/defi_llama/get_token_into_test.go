@@ -7,7 +7,7 @@ import (
 
 func TestGetTokenInfo(t *testing.T) {
 
-	tokenInfo, err := GetTokenInfo("0x699Ec925118567b6475Fe495327ba0a778234AaA")
+	tokenInfo, err := GetTokenInfo("0xdF574c24545E5FfEcb9a659c229253D4111d87e1")
 	if err != nil {
 		t.Errorf("failed to get token info: %v", err)
 	}

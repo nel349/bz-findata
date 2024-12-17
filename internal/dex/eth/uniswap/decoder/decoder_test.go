@@ -575,6 +575,43 @@ func TestDecodeSwapV2(t *testing.T) {
 			t.Errorf("Token B does not match expected value %v, got %v", expectedTransaction1.TokenB, swapTransactions[0].TokenB)
 		}
 	})
+
+	// Test DecodeRemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens
+	t.Run("Test DecodeRemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens", func(t *testing.T) {
+		data := common.FromHex("0x5b0d5984000000000000000000000000504b82ef206c7a044dec29d11eb6966f72dc05060000000000000000000000000000000000000000000006b2462efe9490d0944c000000000000000000000000000000000000000000981720017968e5b8da42a900000000000000000000000000000000000000000000000004b8be5750e738fb00000000000000000000000079c23a63379963d4f45b9ead98bd3d246d37536600000000000000000000000000000000000000000000000000000000675cd7be0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001ccb7da47bf7dcccb7e183e6b1f80dfaf0c11699a89595bc038c8e350b07e07d781eed197e7dae8e88e135b1d3f247dc743cf9cc97e0bed3d31bb024438edb809d")
+
+		err := DecodeRemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens(data, version, swapTransactionResult)
+
+		checkSwapNotNil(t, err, swapTransactionResult)
+
+		expected := &entity.SwapTransaction{
+			TokenA: "0x504b82ef206c7a044dec29d11eb6966f72dc0506",
+			TokenB: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", // ETH
+			Liquidity: "31622776601683793318988",
+			AmountTokenMin: "183865929412571397178933929",
+			AmountETHMin: "340231054095235323",
+		}
+
+		if expected.TokenA != swapTransactionResult.TokenA {
+			t.Errorf("Token A does not match expected value %v, got %v", expected.TokenA, swapTransactionResult.TokenA)
+		}
+
+		if expected.TokenB != swapTransactionResult.TokenB {
+			t.Errorf("Token B does not match expected value %v, got %v", expected.TokenB, swapTransactionResult.TokenB)
+		}
+
+		if expected.Liquidity != swapTransactionResult.Liquidity {
+			t.Errorf("Liquidity does not match expected value %v, got %v", expected.Liquidity, swapTransactionResult.Liquidity)
+		}
+
+		if expected.AmountTokenMin != swapTransactionResult.AmountTokenMin {
+			t.Errorf("Amount Token Min does not match expected value %v, got %v", expected.AmountTokenMin, swapTransactionResult.AmountTokenMin)
+		}
+
+		if expected.AmountETHMin != swapTransactionResult.AmountETHMin {
+			t.Errorf("Amount ETH Min does not match expected value %v, got %v", expected.AmountETHMin, swapTransactionResult.AmountETHMin)
+		}
+	})
 }
 
 func checkSwapNotNil(t *testing.T, err error, swapTransaction *entity.SwapTransaction) {

@@ -379,9 +379,58 @@ func DecodeRemoveLiquidityETH(data []byte, version string, swapTransactionResult
 	return DecodeRemoveLiquidityETHWithPermit(data, version, swapTransactionResult)
 }
 
+/*
+	https://dashboard.tenderly.co/tx/mainnet/0xa433ee623866b6f5ebb4c3e16ab4d7817fbf310dde6d766ecaf58c30dcec5803
+
+	Function: removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(address token, uint256 liquidity, uint256 amountTokenMin, uint256 amountETHMin, address to, uint256 deadline, bool approveMax, uint8 v, bytes32 r, bytes32 s)
+
+	MethodID: 0x5b0d5984
+	[0]:  000000000000000000000000504b82ef206c7a044dec29d11eb6966f72dc0506
+	[1]:  0000000000000000000000000000000000000000000006b2462efe9490d0944c
+	[2]:  000000000000000000000000000000000000000000981720017968e5b8da42a9
+	[3]:  00000000000000000000000000000000000000000000000004b8be5750e738fb
+	[4]:  00000000000000000000000079c23a63379963d4f45b9ead98bd3d246d375366
+	[5]:  00000000000000000000000000000000000000000000000000000000675cd7be
+	[6]:  0000000000000000000000000000000000000000000000000000000000000000
+	[7]:  000000000000000000000000000000000000000000000000000000000000001c
+	[8]:  cb7da47bf7dcccb7e183e6b1f80dfaf0c11699a89595bc038c8e350b07e07d78
+	[9]:  1eed197e7dae8e88e135b1d3f247dc743cf9cc97e0bed3d31bb024438edb809d
+
+	{
+		"token": "0x504b82ef206c7a044dec29d11eb6966f72dc0506",
+		"liquidity": "31622776601683793318988",
+		"amountTokenMin": "183865929412571397178933929",
+		"amountETHMin": "340231054095235323",
+		"to": "0x79c23a63379963d4f45b9ead98bd3d246d375366",
+		"deadline": "1734137790",
+		"approveMax": false,
+		"v": 28,
+		"r": "0xcb7da47bf7dcccb7e183e6b1f80dfaf0c11699a89595bc038c8e350b07e07d78",
+		"s": "0x1eed197e7dae8e88e135b1d3f247dc743cf9cc97e0bed3d31bb024438edb809d"
+	}
+*/
 func DecodeRemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens(data []byte, version string, swapTransactionResult *entity.SwapTransaction) error {
-	// use same logic as removeLiquidityETHWithPermit as we only need to decode the token address and liquidity
-	return DecodeRemoveLiquidityETHWithPermit(data, version, swapTransactionResult)
+
+	data = data[4:]
+
+	// [0] token address to remove liquidity from (20 bytes + 12 bytes padding)
+	tokenA := fmt.Sprintf("0x%s", common.Bytes2Hex(data[0:32])[24:])
+
+	// [1] liquidity (uint256)
+	liquidity := fmt.Sprintf("%d", new(big.Int).SetBytes(data[32:64]))
+
+	// [2] amountTokenMin (uint256)
+	amountTokenMin := fmt.Sprintf("%d", new(big.Int).SetBytes(data[64:96]))
+
+	// [3] amountETHMin (uint256)
+	amountETHMin := fmt.Sprintf("%d", new(big.Int).SetBytes(data[96:128]))
+
+	swapTransactionResult.Liquidity = liquidity
+	swapTransactionResult.AmountTokenMin = amountTokenMin
+	swapTransactionResult.AmountETHMin = amountETHMin
+	swapTransactionResult.TokenA = tokenA
+	swapTransactionResult.TokenB = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" // ETH
+	return nil
 }
 
 /*

@@ -63,13 +63,21 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 		}
 
 		// Calculate value based on operation type
-		if swapTransaction.MethodName == v2.AddLiquidity.String() || swapTransaction.MethodName == v2.RemoveLiquidity.String() {
+		if swapTransaction.MethodName == v2.AddLiquidity.String() {
 			// Calculate combined value from both tokens
 			amountADesired := decoder.ConvertToBigInt(swapTransaction.AmountADesired)
 			amountBDesired := decoder.ConvertToBigInt(swapTransaction.AmountBDesired)
 
 			valueA := decoder.GetUsdValueFromToken(amountADesired, tokenInfoA.Price, int(tokenInfoA.Decimals))
 			valueB := decoder.GetUsdValueFromToken(amountBDesired, tokenInfoB.Price, int(tokenInfoB.Decimals))
+
+			swapTransaction.Value = valueA + valueB
+		} else if swapTransaction.MethodName == v2.RemoveLiquidity.String() {
+			amountAToken := decoder.ConvertToBigInt(swapTransaction.AmountAMin)
+			amountBToken := decoder.ConvertToBigInt(swapTransaction.AmountBMin)
+
+			valueA := decoder.GetUsdValueFromToken(amountAToken, tokenInfoA.Price, int(tokenInfoA.Decimals))
+			valueB := decoder.GetUsdValueFromToken(amountBToken, tokenInfoB.Price, int(tokenInfoB.Decimals))
 
 			swapTransaction.Value = valueA + valueB
 		} else if swapTransaction.MethodName == v2.RemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens.String() {

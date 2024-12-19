@@ -101,6 +101,8 @@ func (s UniswapV2SwapMethod) String() string {
 		return "RemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens"
 	case RemoveLiquidityWithPermit:
 		return "RemoveLiquidityWithPermit"
+	case RemoveLiquidityETH:
+		return "RemoveLiquidityETH"
 	default:
 		return "Unknown"
 	}

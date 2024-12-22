@@ -11,6 +11,7 @@ import (
 	_ "github.com/go-sql-driver/mysql" // Import the MySQL driver
 	"github.com/jmoiron/sqlx"
 	"github.com/nel349/bz-findata/pkg/entity"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewDexExchangeRepository(t *testing.T) {
@@ -39,7 +40,7 @@ func setupTestDB(t *testing.T) *sqlx.DB {
 	dsn := "root:root@tcp(localhost:3306)/?parseTime=true"
 	db, err := sqlx.Connect("mysql", dsn)
 	if err != nil {
-		t.Fatalf("Failed to connect to MySQL server: %v", err)
+		t.Fatalf("Failed to connect to MySQL server: %v Did you start the mysql server?", err)
 	}
 
 	// Create a new test database
@@ -111,9 +112,9 @@ func setupTestDB(t *testing.T) *sqlx.DB {
 }
 
 /*
-	Test Save Swap - RemoveLiquidity
+Test Save Swap - RemoveLiquidity
 
-	https://dashboard.tenderly.co/tx/mainnet/0x1141dee16423b087413a9dff4635f00ce5067b54cdd736d89e9d7f2ce5916fa8
+https://dashboard.tenderly.co/tx/mainnet/0x1141dee16423b087413a9dff4635f00ce5067b54cdd736d89e9d7f2ce5916fa8
 
 	{
 		"tokenA": "0x6b175474e89094c44da98b954eedeac495271d0f",
@@ -133,24 +134,24 @@ func Test_dexExchangeRepo_SaveSwap(t *testing.T) {
 
 	// Create a mock transaction
 	tx := types.NewTransaction(
-		0,                          // nonce
+		0, // nonce
 		common.HexToAddress("0xdc0488a855ca075c5f7c6b9567fa0b84a9d97ffd5bb4bea913e9840a402b5b79"), // to address
-		big.NewInt(0),              // value
-		0,                          // gas limit
-		big.NewInt(0),              // gas price
-		data,                        // data
+		big.NewInt(0), // value
+		0,             // gas limit
+		big.NewInt(0), // gas price
+		data,          // data
 	)
 
 	fmt.Println("tx: ", tx.Hash().Hex())
 
 	// Create a mock SwapTransaction entity
 	swapTransaction := &entity.SwapTransaction{
-		TxHash:             tx.Hash().Hex(),
-		TokenA:             "0x6b175474e89094c44da98b954eedeac495271d0f",
-		TokenB:             "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-		Liquidity:          "5688426355532103909",
-		AmountAMin:         "702110776270740190514",
-		AmountBMin:         "179779514399370049",
+		TxHash:     tx.Hash().Hex(),
+		TokenA:     "0x6b175474e89094c44da98b954eedeac495271d0f",
+		TokenB:     "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+		Liquidity:  "5688426355532103909",
+		AmountAMin: "702110776270740190514",
+		AmountBMin: "179779514399370049",
 	}
 
 	// Create a dexExchangeRepo instance
@@ -198,5 +199,174 @@ func Test_dexExchangeRepo_SaveSwap(t *testing.T) {
 
 	if insertedSwap.AmountBMin != swapTransaction.AmountBMin {
 		t.Errorf("Amount B Min does not match expected value %v, got %v", swapTransaction.AmountBMin, insertedSwap.AmountBMin)
+	}
+
+}
+
+func TestSaveSwapMethods(t *testing.T) {
+	// Setup test database
+	db := setupTestDB(t)
+
+	// Insert test token metadata
+	setupTestTokenMetadata(t, db)
+
+	testCases := []struct {
+		name       string
+		txData     []byte
+		version    string
+		methodName string
+		tokenA     string
+		tokenB     string
+		value      float64
+	}{
+		{
+			name: "Test RemoveLiquidity",
+			txData: common.FromHex("0xbaa2abde" + // RemoveLiquidity method ID
+				"0000000000000000000000006b175474e89094c44da98b954eedeac495271d0f" + // tokenA (DAI)
+				"000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" + // tokenB (WETH)
+				"0000000000000000000000000000000000000000000000004ef159a1bc7600e5" + // liquidity
+				"0000000000000000000000000000000000000000000000260fbe8f136f3af532" + // amountAMin
+				"000000000000000000000000000000000000000000000000027eb4840daaab41" + // amountBMin
+				"000000000000000000000000c47e5d32f7be0cc171740ebbb3f26f78488cd22f" + // to
+				"00000000000000000000000000000000000000000000000000000000675caf2e"), // deadline
+			version:    "V2",
+			methodName: "RemoveLiquidity",
+			tokenA:     "0x6b175474e89094c44da98b954eedeac495271d0f", // DAI
+			tokenB:     "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", // WETH
+		},
+		{
+			name: "Test AddLiquidity",
+			txData: common.FromHex("0xe8e33700" + // AddLiquidity method ID
+				"0000000000000000000000006b175474e89094c44da98b954eedeac495271d0f" + // tokenA (DAI)
+				"000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" + // tokenB (WETH)
+				"0000000000000000000000000000000000000000000000008ac7230489e80000" + // amountADesired (10 DAI)
+				"0000000000000000000000000000000000000000000000000de0b6b3a7640000" + // amountBDesired (1 WETH)
+				"0000000000000000000000000000000000000000000000008ac7230489e80000" + // amountAMin
+				"0000000000000000000000000000000000000000000000000de0b6b3a7640000" + // amountBMin
+				"000000000000000000000000c47e5d32f7be0cc171740ebbb3f26f78488cd22f" + // to
+				"00000000000000000000000000000000000000000000000000000000675caf2e"), // deadline
+			version:    "V2",
+			methodName: "AddLiquidity",
+			tokenA:     "0x6b175474e89094c44da98b954eedeac495271d0f", // DAI
+			tokenB:     "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", // WETH
+		},
+		{
+			name: "Test SwapExactETHForTokens",
+			txData: common.FromHex("0x7ff36ab5" + // SwapExactETHForTokens method ID
+				"0000000000000000000000000000000000000000000000000de0b6b3a7640000" + // amountOutMin
+				"0000000000000000000000000000000000000000000000000000000000000080" + // path offset
+				"000000000000000000000000c47e5d32f7be0cc171740ebbb3f26f78488cd22f" + // to
+				"00000000000000000000000000000000000000000000000000000000675caf2e" + // deadline
+				"0000000000000000000000000000000000000000000000000000000000000002" + // path length
+				"000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" + // WETH
+				"0000000000000000000000006b175474e89094c44da98b954eedeac495271d0f"), // DAI
+			version:    "V2",
+			methodName: "SwapExactETHForTokens",
+			tokenA:     "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", // WETH
+			tokenB:     "0x6b175474e89094c44da98b954eedeac495271d0f", // DAI
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create transaction with test data
+			tx := types.NewTransaction(
+				0, // nonce
+				common.HexToAddress("0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"), // Uniswap V2 Router
+				big.NewInt(0),           // value
+				500000,                  // gas limit
+				big.NewInt(50000000000), // gas price
+				tc.txData,               // data
+			)
+
+			// Create repository instance
+			repo := NewDexExchangeRepository(db)
+
+			// Execute SaveSwap
+			err := repo.SaveSwap(context.Background(), tx, tc.version)
+			if err != nil {
+				t.Fatalf("Failed to save swap: %v", err)
+			}
+
+			// Verify the saved transaction
+			var saved entity.SwapTransaction
+			err = db.Get(&saved, "SELECT * FROM swap_transactions WHERE tx_hash = ?", tx.Hash().Hex())
+			if err != nil {
+				t.Fatalf("Failed to retrieve saved transaction: %v", err)
+			}
+
+			// Assertions
+			assert.Equal(t, tc.methodName, saved.MethodName)
+			assert.Equal(t, tc.version, saved.Version)
+			assert.NotZero(t, saved.Value) // Value should be calculated
+
+			// Method-specific assertions
+			switch tc.methodName {
+			case "addLiquidity":
+				assert.Equal(t, tc.tokenA, saved.TokenA)
+				assert.Equal(t, tc.tokenB, saved.TokenB)
+				assert.NotEmpty(t, saved.AmountADesired)
+				assert.NotEmpty(t, saved.AmountBDesired)
+			case "removeLiquidity":
+				assert.Equal(t, tc.tokenA, saved.TokenA)
+				assert.Equal(t, tc.tokenB, saved.TokenB)
+				assert.NotEmpty(t, saved.AmountAMin)
+				assert.NotEmpty(t, saved.AmountBMin)
+			case "swapExactETHForTokens":
+				assert.Equal(t, tc.tokenA, saved.TokenPathFrom)
+				assert.Equal(t, tc.tokenB, saved.TokenPathTo)
+				assert.NotEmpty(t, saved.AmountIn)
+			}
+
+			// Print detailed information for debugging
+			// t.Logf("Transaction details for %s:", tc.name)
+			// t.Logf("Method Name: %s", saved.MethodName)
+			// t.Logf("Version: %s", saved.Version)
+			// t.Logf("Value: %f", saved.Value)
+			// t.Logf("Token A: %s", saved.TokenA)
+			// t.Logf("Token B: %s", saved.TokenB)
+		})
+	}
+}
+
+func setupTestTokenMetadata(t *testing.T, db *sqlx.DB) {
+	// Insert test token metadata
+	tokens := []struct {
+		address  string
+		symbol   string
+		decimals int
+		price    float64
+	}{
+		{
+			address:  "0x6b175474e89094c44da98b954eedeac495271d0f", // DAI
+			symbol:   "DAI",
+			decimals: 18,
+			price:    1.0, // 1 USD
+		},
+		{
+			address:  "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", // WETH
+			symbol:   "WETH",
+			decimals: 18,
+			price:    2000.0, // 2000 USD
+		},
+	}
+
+	for _, token := range tokens {
+		_, err := db.Exec(`
+			INSERT INTO token_metadata (address, symbol, decimals, price)
+			VALUES (?, ?, ?, ?)
+			ON DUPLICATE KEY UPDATE
+				symbol = VALUES(symbol),
+				decimals = VALUES(decimals),
+				price = VALUES(price)
+		`,
+			token.address,
+			token.symbol,
+			token.decimals,
+			token.price,
+		)
+		if err != nil {
+			t.Fatalf("Failed to insert token metadata: %v", err)
+		}
 	}
 }

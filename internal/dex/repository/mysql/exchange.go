@@ -63,7 +63,8 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 		}
 
 		// Calculate value based on operation type
-		if swapTransaction.MethodName == v2.AddLiquidity.String() {
+		switch swapTransaction.MethodName {
+		case v2.AddLiquidity.String():
 			// Calculate combined value from both tokens
 			amountADesired := decoder.ConvertToBigInt(swapTransaction.AmountADesired)
 			amountBDesired := decoder.ConvertToBigInt(swapTransaction.AmountBDesired)
@@ -72,7 +73,8 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 			valueB := decoder.GetUsdValueFromToken(amountBDesired, tokenInfoB.Price, int(tokenInfoB.Decimals))
 
 			swapTransaction.Value = valueA + valueB
-		} else if swapTransaction.MethodName == v2.RemoveLiquidity.String() {
+
+		case v2.RemoveLiquidity.String():
 			amountAToken := decoder.ConvertToBigInt(swapTransaction.AmountAMin)
 			amountBToken := decoder.ConvertToBigInt(swapTransaction.AmountBMin)
 
@@ -80,7 +82,8 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 			valueB := decoder.GetUsdValueFromToken(amountBToken, tokenInfoB.Price, int(tokenInfoB.Decimals))
 
 			swapTransaction.Value = valueA + valueB
-		} else if swapTransaction.MethodName == v2.RemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens.String() {
+
+		case v2.RemoveLiquidityETHWithPermitSupportingFeeOnTransferTokens.String():
 			amountAToken := decoder.ConvertToBigInt(swapTransaction.AmountTokenMin)
 			amountBToken := decoder.ConvertToBigInt(swapTransaction.AmountETHMin)
 
@@ -88,43 +91,50 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 			valueB := decoder.GetUsdValueFromToken(amountBToken, tokenInfoB.Price, int(tokenInfoB.Decimals))
 
 			swapTransaction.Value = valueA + valueB
-		} else if version == "V2" || version == "V3" {
-			var tokenAmount *big.Int
-			var useNativeValue bool
 
-			// Check if method uses ETH as input
-			if method, ok := v2.GetV2MethodFromID(swapTransaction.MethodID); ok {
-				useNativeValue = method.IsETHInput()
-			}
+		case v2.SwapExactETHForTokens.String():
+			amountOutMin := decoder.ConvertToBigInt(swapTransaction.AmountOutMin)
+			swapTransaction.Value = decoder.GetUsdValueFromToken(amountOutMin, tokenInfoFrom.Price, int(tokenInfoFrom.Decimals))
 
-			if useNativeValue {
-				// For ETH input methods, use transaction value
-				tokenAmount = tx.Value()
-				// Get WETH price for value calculation
-				tokenInfoFrom, err = defi_llama.GetTokenMetadataFromDbOrDefiLlama(
-					e.db,
-					"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", // WETH address
-					15*time.Minute,
+		default:
+			if version == "V2" || version == "V3" {
+				var tokenAmount *big.Int
+				var useNativeValue bool
+
+				// Check if method uses ETH as input
+				if method, ok := v2.GetV2MethodFromID(swapTransaction.MethodID); ok {
+					useNativeValue = method.IsETHInput()
+				}
+
+				if useNativeValue {
+					// For ETH input methods, use transaction value
+					tokenAmount = tx.Value()
+					// Get WETH price for value calculation
+					tokenInfoFrom, err = defi_llama.GetTokenMetadataFromDbOrDefiLlama(
+						e.db,
+						"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", // WETH address
+						15*time.Minute,
+					)
+				} else {
+					// For token input methods, use decoded amount
+					tokenAmount = decoder.ConvertToBigInt(swapTransaction.AmountIn)
+					tokenInfoFrom, err = defi_llama.GetTokenMetadataFromDbOrDefiLlama(
+						e.db,
+						swapTransaction.TokenPathFrom,
+						15*time.Minute,
+					)
+				}
+
+				if err != nil {
+					return err
+				}
+
+				swapTransaction.Value = decoder.GetUsdValueFromToken(
+					tokenAmount,
+					tokenInfoFrom.Price,
+					int(tokenInfoFrom.Decimals),
 				)
-			} else {
-				// For token input methods, use decoded amount
-				tokenAmount = decoder.ConvertToBigInt(swapTransaction.AmountIn)
-				tokenInfoFrom, err = defi_llama.GetTokenMetadataFromDbOrDefiLlama(
-					e.db,
-					swapTransaction.TokenPathFrom,
-					15*time.Minute,
-				)
 			}
-
-			if err != nil {
-				return err
-			}
-
-			swapTransaction.Value = decoder.GetUsdValueFromToken(
-				tokenAmount,
-				tokenInfoFrom.Price,
-				int(tokenInfoFrom.Decimals),
-			)
 		}
 
 		// fmt.Printf("TokenInfoFrom decimals: %d\n, symbol: %s\n, price: %.9f\n", tokenInfoFrom.Decimals, tokenInfoFrom.Symbol, tokenInfoFrom.Price)
@@ -194,7 +204,7 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 					Liquidity:          swapTransaction.Liquidity,
 					TokenA:             swapTransaction.TokenA,
 					TokenB:             swapTransaction.TokenB,
-					AmountADesired:    swapTransaction.AmountADesired,
+					AmountADesired:     swapTransaction.AmountADesired,
 					AmountBDesired:     swapTransaction.AmountBDesired,
 					AmountAMin:         swapTransaction.AmountAMin,
 					AmountBMin:         swapTransaction.AmountBMin,

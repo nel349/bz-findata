@@ -96,6 +96,10 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 			amountOutMin := decoder.ConvertToBigInt(swapTransaction.AmountOutMin)
 			swapTransaction.Value = decoder.GetUsdValueFromToken(amountOutMin, tokenInfoFrom.Price, int(tokenInfoFrom.Decimals))
 
+		case v2.RemoveLiquidityETH.String(): // uses the liquidity to get the value of the token
+			liquidity := decoder.ConvertToBigInt(swapTransaction.Liquidity)
+			swapTransaction.Value = decoder.GetUsdValueFromToken(liquidity, tokenInfoFrom.Price, int(tokenInfoFrom.Decimals))
+
 		default:
 			if version == "V2" || version == "V3" {
 				var tokenAmount *big.Int

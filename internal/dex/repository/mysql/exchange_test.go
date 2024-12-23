@@ -218,6 +218,8 @@ func TestSaveSwapMethods(t *testing.T) {
 		tokenA     string
 		tokenB     string
 		value      float64
+		tokenPathFrom string
+		tokenPathTo string
 	}{
 		{
 			name: "Test RemoveLiquidity",
@@ -233,6 +235,20 @@ func TestSaveSwapMethods(t *testing.T) {
 			methodName: "RemoveLiquidity",
 			tokenA:     "0x6b175474e89094c44da98b954eedeac495271d0f", // DAI
 			tokenB:     "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", // WETH
+		},
+		// RemoveLiquidityETH
+		{
+			name: "Test RemoveLiquidityETH",
+			txData: common.FromHex("0x02751cec" + // RemoveLiquidityETH method ID
+				"0000000000000000000000006b175474e89094c44da98b954eedeac495271d0f" + // token
+				"0000000000000000000000000000000000000000000000004ef159a1bc7600e5" + // liquidity
+				"0000000000000000000000000000000000000000000000008ac7230489e80000" + // amountTokenMin (10 tokens)
+				"0000000000000000000000000000000000000000000000000de0b6b3a7640000" + // amountETHMin (1 ETH)
+				"000000000000000000000000c47e5d32f7be0cc171740ebbb3f26f78488cd22f" + // to
+				"00000000000000000000000000000000000000000000000000000000675caf2e"), // deadline
+			version:    "V2",
+			methodName: "RemoveLiquidityETH",
+			tokenPathFrom: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
 		},
 		{
 			name: "Test AddLiquidity",
@@ -316,6 +332,10 @@ func TestSaveSwapMethods(t *testing.T) {
 				assert.Equal(t, tc.tokenA, saved.TokenPathFrom)
 				assert.Equal(t, tc.tokenB, saved.TokenPathTo)
 				assert.NotEmpty(t, saved.AmountIn)
+			case "removeLiquidityETH":
+				assert.Equal(t, tc.tokenPathFrom, saved.TokenPathFrom)
+				assert.Equal(t, tc.tokenPathTo, saved.TokenPathTo)
+				assert.NotEmpty(t, saved.Liquidity)
 			}
 
 			// Print detailed information for debugging

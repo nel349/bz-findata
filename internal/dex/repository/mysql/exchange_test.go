@@ -71,6 +71,7 @@ func setupTestDB(t *testing.T) *sqlx.DB {
 			amount_token_desired varchar(100) NULL,
 			amount_token_min varchar(100) NULL,
 			amount_eth_min varchar(100) NULL,
+			amount_out_min varchar(100) NULL,
 			method_id varchar(10) NULL,
 			method_name varchar(100) NULL,
 			liquidity varchar(100) NULL,
@@ -289,7 +290,7 @@ func TestSaveSwapMethods(t *testing.T) {
 			tx := types.NewTransaction(
 				0, // nonce
 				common.HexToAddress("0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"), // Uniswap V2 Router
-				big.NewInt(0),           // value
+				big.NewInt(2 * 1e18),           // value
 				500000,                  // gas limit
 				big.NewInt(50000000000), // gas price
 				tc.txData,               // data
@@ -347,6 +348,56 @@ func TestSaveSwapMethods(t *testing.T) {
 			// t.Logf("Token B: %s", saved.TokenB)
 		})
 	}
+}
+
+// Test Save Swap - SwapExactETHForTokens - amount_out_min is not empty
+func TestSaveSwap_SwapExactETHForTokens(t *testing.T) {
+
+	data := common.FromHex("0x7ff36ab5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000006a6d2f08e31e1ffd628c44acb0552c6ea1756e6b0000000000000000000000000000000000000000000000000000000067896e5e0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc200000000000000000000000094f17eb111cbea1ab1e670af0238da820329a111")
+
+
+
+	t.Run("Test Save Swap - SwapExactETHForTokens - amount_out_min is not empty", func(t *testing.T) {
+		// Setup test database
+		db := setupTestDB(t)
+
+		// Insert test token metadata
+		setupTestTokenMetadata(t, db)
+
+		tx := types.NewTransaction(
+			0, // nonce
+			common.HexToAddress("0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"), // Uniswap V2 Router
+			big.NewInt(1.8 * 1e18),           // value
+			500000,                  // gas limit
+			big.NewInt(50000000000), // gas price
+			data,               // data
+		)
+
+		// Create repository instance
+		repo := NewDexExchangeRepository(db)
+
+		// Execute SaveSwap
+		err := repo.SaveSwap(context.Background(), tx, "V2")
+		if err != nil {
+			t.Fatalf("Failed to save swap: %v", err)
+		}
+
+		// Verify the saved transaction
+		var saved entity.SwapTransaction
+		err = db.Get(&saved, "SELECT * FROM swap_transactions WHERE tx_hash = ?", tx.Hash().Hex())
+		if err != nil {
+			t.Fatalf("Failed to retrieve saved transaction: %v", err)
+		}
+
+
+		// Assertions
+		assert.Equal(t, "SwapExactETHForTokens", saved.MethodName)
+		assert.Equal(t, "V2", saved.Version)
+		assert.NotZero(t, saved.Value) // Value should be calculated
+		assert.Equal(t, "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", saved.TokenPathFrom)
+		assert.Equal(t, "0x94f17eb111cbea1ab1e670af0238da820329a111", saved.TokenPathTo)
+	})	
+
 }
 
 func setupTestTokenMetadata(t *testing.T, db *sqlx.DB) {

@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS `swap_transactions`
     `amount_token_desired` varchar(100) NULL, -- Uniswap V2 add liquidity
     `amount_token_min` varchar(100) NULL, -- Uniswap V2 add liquidity
     `amount_eth_min` varchar(100) NULL, -- Uniswap V2 add liquidity
+    `amount_out_min` varchar(100) NULL, -- Uniswap V3 swap
     `method_id` varchar(10) NULL,
     `method_name` varchar(100) NULL,
     `liquidity` varchar(100) NULL, -- Uniswap V2 remove liquidity

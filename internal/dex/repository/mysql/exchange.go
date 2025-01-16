@@ -92,9 +92,6 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 
 			swapTransaction.Value = valueA + valueB
 
-		case v2.SwapExactETHForTokens.String():
-			amountOutMin := decoder.ConvertToBigInt(swapTransaction.AmountOutMin)
-			swapTransaction.Value = decoder.GetUsdValueFromToken(amountOutMin, tokenInfoFrom.Price, int(tokenInfoFrom.Decimals))
 
 		case v2.RemoveLiquidityETH.String(): // uses the liquidity to get the value of the token
 			liquidity := decoder.ConvertToBigInt(swapTransaction.Liquidity)
@@ -103,20 +100,20 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 		default:
 			if version == "V2" || version == "V3" {
 				var tokenAmount *big.Int
-				var useNativeValue bool
+				var isETHInputMethod bool
 
 				// Check if method uses ETH as input
 				if method, ok := v2.GetV2MethodFromID(swapTransaction.MethodID); ok {
-					useNativeValue = method.IsETHInput()
+					isETHInputMethod = method.IsETHInput()
 				}
 
-				if useNativeValue {
+				if isETHInputMethod {
 					// For ETH input methods, use transaction value
 					tokenAmount = tx.Value()
 					// Get WETH price for value calculation
 					tokenInfoFrom, err = defi_llama.GetTokenMetadataFromDbOrDefiLlama(
 						e.db,
-						"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", // WETH address
+						"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", // WETH address
 						15*time.Minute,
 					)
 				} else {
@@ -157,6 +154,7 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 			amount_token_desired,
 			amount_token_min,
 			amount_eth_min,
+			amount_out_min,
 			method_id,
 			method_name,
 			liquidity,
@@ -178,6 +176,7 @@ func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, v
 			:amount_token_desired,
 			:amount_token_min,
 			:amount_eth_min,
+			:amount_out_min,
 			:method_id,
 			:method_name,
 			:liquidity,

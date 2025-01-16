@@ -24,7 +24,7 @@ func NewDexExchangeRepository(db *sqlx.DB) *dexExchangeRepo {
 }
 
 func (e *dexExchangeRepo) SaveSwap(ctx context.Context, tx *types.Transaction, version string) error {
-	ctxReq, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctxReq, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
 	swapTransactions, err := decoder.DecodeSwap(tx, version)

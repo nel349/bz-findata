@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/nel349/bz-findata/pkg/entity"
 )
@@ -43,7 +44,7 @@ import (
 type MoralisResponse struct {
 	TokenName     string `json:"tokenName"`
 	TokenSymbol   string `json:"tokenSymbol"`
-	TokenDecimals string `json:"tokenDecimals"`
+	TokenDecimals string  `json:"tokenDecimals"`
 	NativePrice   struct {
 		Value    string `json:"value"`
 		Decimals uint8  `json:"decimals"`
@@ -79,9 +80,14 @@ func GetTokenInfoFromMoralis(tokenAddress string) (entity.TokenInfo, error) {
 	// Extract data from the response
 	// key := fmt.Sprintf("ethereum:%s", tokenAddress)
 
+	decimals, err := strconv.Atoi(response.TokenDecimals)
+	if err != nil {
+		return entity.TokenInfo{}, fmt.Errorf("failed to convert decimals to int: %w", err)
+	}
+
 	return entity.TokenInfo{
 		Address:  tokenAddress,
-		Decimals: response.NativePrice.Decimals,
+		Decimals: uint8(decimals),
 		Symbol:   response.TokenSymbol,
 		Price:    response.UsdPrice,
 	}, nil

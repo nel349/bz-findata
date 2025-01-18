@@ -33,7 +33,7 @@ app-up: build-app ## Run only main app
 
 analysis-up: build-analysis ## Run only analysis app
 	@echo "Running analysis app and mysql services..."
-	docker compose up analysis_app mysql
+	docker compose up analysis_app mysql 
 
 dex-up: build-dex ## Run only dex app
 	@echo "Running dex app and mysql services..."

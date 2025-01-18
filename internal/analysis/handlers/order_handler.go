@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/nel349/bz-findata/internal/analysis"
+	"github.com/nel349/bz-findata/internal/analysis/orders"
 )
 
 type OrderHandler struct {

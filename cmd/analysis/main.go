@@ -11,10 +11,11 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/nel349/bz-findata/config"
-	"github.com/nel349/bz-findata/internal/analysis"
 	"github.com/nel349/bz-findata/internal/analysis/database"
+	"github.com/nel349/bz-findata/internal/analysis/dex"
 	"github.com/nel349/bz-findata/internal/analysis/handlers"
 	"github.com/nel349/bz-findata/internal/analysis/infrastructure/scheduler"
+	"github.com/nel349/bz-findata/internal/analysis/orders"
 	"github.com/nel349/bz-findata/internal/analysis/supabase"
 	"github.com/nel349/bz-findata/internal/analysis/task"
 	"github.com/robfig/cron/v3"
@@ -79,9 +80,12 @@ func run(cfg *config.AnalysisConfig) error {
 	// Initialize services
 	supabaseRepo := supabase.NewSupabaseRepository()
 	analysisService := analysis.NewService(db, supabaseRepo.Client)
-
+	dexService := dex.NewService(db, supabaseRepo.Client)
+	
 	// Initialize handlers
 	orderHandler := handlers.NewOrderHandler(analysisService)
+	dexHandler := handlers.NewDexHandler(dexService)
+
 
 	// Setup router
 	r := chi.NewRouter()
@@ -109,6 +113,11 @@ func run(cfg *config.AnalysisConfig) error {
 				r.Delete("/stop/{taskID}", taskManager.StopTask)
 				r.Get("/tasks", taskManager.ListTasks)
 			})
+		})
+
+		// Routes for dex
+		r.Route("/dex", func(r chi.Router) {
+			r.Get("/largest-swaps", dexHandler.GetLargestSwaps)
 		})
 	})
 

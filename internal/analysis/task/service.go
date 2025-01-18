@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/nel349/bz-findata/internal/analysis"
+	"github.com/nel349/bz-findata/internal/analysis/orders"
 )
 
 type Service struct {

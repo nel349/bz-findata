@@ -13,6 +13,7 @@ type SwapTransaction struct {
 	TokenPathTo   string `db:"token_path_to"`
 	MethodID      string `db:"method_id"`
 	MethodName    string `db:"method_name"`
+	LastUpdated   string `db:"last_updated"`
 
 	// Uniswap V2 add/remove liquidity
 	AmountTokenDesired string `db:"amount_token_desired"`

@@ -50,6 +50,24 @@ func (s *Service) GetLargestSwapsInLastNHours(
 	return swaps, nil
 }
 
+// Store to supabase StoreLargestSwapsInLastNHours
+func (s *Service) StoreLargestSwapsInLastNHours(ctx context.Context, hours, limit int) error {
+	swaps, err := s.GetLargestSwapsInLastNHours(ctx, hours, limit)
+	if err != nil {
+		log.Println("error getting largest swaps", err)
+		return err
+	}
+	return s.storeSwapsInSupabase(swaps, "swap_transactions")
+}
+
+func (s *Service) storeSwapsInSupabase(swaps interface{}, tableName string) error {
+	_, err := s.supabaseClient.From(tableName).Insert(swaps, false, "", "", "").ExecuteTo(&swaps)
+	if err != nil {
+		log.Println("error inserting swaps to supabase table", err)
+		return err
+	}
+	return nil
+}
 
 
 

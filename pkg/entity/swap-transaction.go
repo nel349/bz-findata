@@ -1,40 +1,40 @@
 package entity
 
 type SwapTransaction struct {
-	Value        float64 `db:"value"`
-	TxHash       string  `db:"tx_hash"`
-	Version      string  `db:"version"`
-	Exchange     string  `db:"exchange"`
-	AmountIn     string `db:"amount_in"`
-	AmountOutMin string `db:"amount_out_min"`
-	// Deadline      string `db:"deadline"`
-	ToAddress     string `db:"to_address"`
-	TokenPathFrom string `db:"token_path_from"`
-	TokenPathTo   string `db:"token_path_to"`
-	MethodID      string `db:"method_id"`
-	MethodName    string `db:"method_name"`
-	LastUpdated   string `db:"last_updated"`
+	Value        float64 `json:"value" db:"value"`
+	TxHash       string  `json:"tx_hash" db:"tx_hash"`
+	Version      string  `json:"version" db:"version"`
+	Exchange     string  `json:"exchange" db:"exchange"`
+	AmountIn     string  `json:"amount_in" db:"amount_in"`
+	AmountOutMin string  `json:"amount_out_min" db:"amount_out_min"`
+	// Deadline      string `json:"deadline" db:"deadline"`
+	ToAddress     string `json:"to_address" db:"to_address"`
+	TokenPathFrom string `json:"token_path_from" db:"token_path_from"`
+	TokenPathTo   string `json:"token_path_to" db:"token_path_to"`
+	MethodID      string `json:"method_id" db:"method_id"`
+	MethodName    string `json:"method_name" db:"method_name"`
+	LastUpdated   string `json:"last_updated" db:"last_updated"`
 
 	// Uniswap V2 add/remove liquidity
-	AmountTokenDesired string `db:"amount_token_desired"`
-	AmountTokenMin     string `db:"amount_token_min"`
-	AmountETHMin       string `db:"amount_eth_min"`
-	TokenA             string `db:"token_a"`
-	TokenB             string `db:"token_b"`
-	AmountADesired    string `db:"amount_a_desired"`
-	AmountBDesired     string `db:"amount_b_desired"`
-	Liquidity          string  `db:"liquidity"`
-	AmountAMin         string  `db:"amount_a_min"`
-	AmountBMin         string  `db:"amount_b_min"`
+	AmountTokenDesired string `json:"amount_token_desired" db:"amount_token_desired"`
+	AmountTokenMin     string `json:"amount_token_min" db:"amount_token_min"`
+	AmountETHMin       string `json:"amount_eth_min" db:"amount_eth_min"`
+	TokenA             string `json:"token_a" db:"token_a"`
+	TokenB             string `json:"token_b" db:"token_b"`
+	AmountADesired     string `json:"amount_a_desired" db:"amount_a_desired"`
+	AmountBDesired     string `json:"amount_b_desired" db:"amount_b_desired"`
+	Liquidity          string `json:"liquidity" db:"liquidity"`
+	AmountAMin         string `json:"amount_a_min" db:"amount_a_min"`
+	AmountBMin         string `json:"amount_b_min" db:"amount_b_min"`
 
 	// v2 swapTokensForExactTokens
-	AmountOut        string `db:"amount_out"`
-	AmountInMax      string `db:"amount_in_max"`
+	AmountOut   string `json:"amount_out" db:"amount_out"`
+	AmountInMax string `json:"amount_in_max" db:"amount_in_max"`
 
 	// Uniswap V3
-	Fee string `db:"fee"`
+	Fee string `json:"fee" db:"fee"`
 
 	// Uniswap V3 Multicall
-	NumberOfCalls int `db:"number_of_calls"`
-	CallsData []string 
+	NumberOfCalls int      `json:"number_of_calls,omitempty" db:"-"`
+	CallsData     []string `json:"calls_data,omitempty" db:"-"`
 }

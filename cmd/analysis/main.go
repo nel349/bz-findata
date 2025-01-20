@@ -118,6 +118,7 @@ func run(cfg *config.AnalysisConfig) error {
 		// Routes for dex
 		r.Route("/dex", func(r chi.Router) {
 			r.Get("/largest-swaps", dexHandler.GetLargestSwaps)
+			r.Post("/store-largest-swaps", dexHandler.StoreLargestSwaps)
 		})
 	})
 

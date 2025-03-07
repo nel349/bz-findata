@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/nel349/bz-findata/config"
-	"github.com/nel349/bz-findata/internal/app/delivery/websocket"
-	"github.com/nel349/bz-findata/internal/app/repository"
-	"github.com/nel349/bz-findata/internal/app/usecase"
+	"github.com/nel349/bz-findata/internal/cex-collector/delivery/websocket"
+	"github.com/nel349/bz-findata/internal/cex-collector/repository"
+	"github.com/nel349/bz-findata/internal/cex-collector/usecase"
 	"github.com/nel349/bz-findata/pkg/database/mysql"
 	"github.com/nel349/bz-findata/pkg/exchange/coinbase"
 	"github.com/nel349/bz-findata/pkg/logger/zap"

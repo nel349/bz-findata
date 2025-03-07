@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	"github.com/nel349/bz-findata/config"
-	"github.com/nel349/bz-findata/internal/app"
+	"github.com/nel349/bz-findata/internal/cex-collector"
 )
 
 func main() {

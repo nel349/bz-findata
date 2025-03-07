@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/nel349/bz-findata/config"
-	"github.com/nel349/bz-findata/internal/app/usecase"
+	"github.com/nel349/bz-findata/internal/cex-collector/usecase"
 	"github.com/nel349/bz-findata/pkg/exchange"
 	"github.com/nel349/bz-findata/pkg/logger"
 )

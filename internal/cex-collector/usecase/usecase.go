@@ -3,8 +3,8 @@ package usecase
 import (
 	"context"
 
+	"github.com/nel349/bz-findata/internal/cex-collector/repository"
 	"github.com/nel349/bz-findata/pkg/entity"
-	"github.com/nel349/bz-findata/internal/app/repository"
 	"github.com/nel349/bz-findata/pkg/logger"
 )
 

@@ -8,8 +8,8 @@
   "taskRoleArn": "arn:aws:iam::886436943186:role/ecsTaskRole",
   "containerDefinitions": [
       {
-          "name": "bz-findata-coinbase",
-          "image": "886436943186.dkr.ecr.us-east-2.amazonaws.com/bz-findata-coinbase",
+          "name": "cex-collector",
+          "image": "886436943186.dkr.ecr.us-east-2.amazonaws.com/bz-findata-cex-collector",
           "essential": true,
           "environment": [
               { "name": "DB_HOST", "value": "database-1.ct8iscmes4ms.us-east-2.rds.amazonaws.com:3306" },

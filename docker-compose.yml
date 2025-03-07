@@ -1,10 +1,10 @@
 
 services:
-  app:
-    image: coinbase-app
+  cex_collector:
+    image: cex-collector
     build:
       context: .
-      dockerfile: cmd/app/Dockerfile
+      dockerfile: cmd/cex-collector/Dockerfile
     environment:
       IS_LOCAL: "true"
       # logger

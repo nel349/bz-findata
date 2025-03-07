@@ -9,9 +9,9 @@ ENV GOARCH=amd64
 COPY . .
 
 # Build the main app
-RUN go build -o main ./cmd/app
+RUN go build -o cex-collector ./cmd/cex-collector
 
 # Create final image
 FROM alpine:latest
-COPY --from=builder /app/main /usr/local/bin/
-CMD ["main"]
+COPY --from=builder /app/cex-collector /usr/local/bin/
+CMD ["cex-collector"]

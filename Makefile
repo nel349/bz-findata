@@ -14,8 +14,8 @@ build-base: ## Build base Docker image
 build-all: build-base ## Build all applications
 	docker compose build
 
-build-app: build-base ## Build only main app
-	docker build --platform linux/amd64 -t coinbase-app -f cmd/app/Dockerfile .
+build-cex-collector: build-base ## Build only main app
+	docker build --platform linux/amd64 -t cex-collector -f cmd/cex-collector/Dockerfile .
 
 build-analysis: build-base ## Build only analysis app
 	docker build --platform linux/amd64 -t analysis-app -f cmd/analysis/Dockerfile .
@@ -27,9 +27,9 @@ build-dex: build-base ## Build only dex app
 docker-compose-up: ## Run all services
 	docker compose up
 
-app-up: build-app ## Run only main app
+cex-collector-up: build-cex-collector ## Run only main app
 	@echo "Running main app and mysql services..."
-	docker compose up app mysql
+	docker compose up cex_collector mysql
 
 analysis-up: build-analysis ## Run only analysis app
 	@echo "Running analysis app and mysql services..."

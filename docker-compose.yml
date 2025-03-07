@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: cmd/cex-collector/Dockerfile
+    restart: on-failure:10
     environment:
       IS_LOCAL: "true"
       # logger
@@ -26,7 +27,6 @@ services:
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN}
-    restart: unless-stopped
     depends_on:
       mysql:
         condition: service_healthy

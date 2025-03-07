@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/nel349/bz-findata/config"
@@ -98,9 +99,9 @@ func (c *client) MonitorHeartbeat(ctx context.Context, timeout time.Duration) {
 
 				// check if we've exceeded the retry limit first
 				if c.reconnectAttempts >= 5 {
-					fmt.Println("Too many reconnection attempts, circuit breaker activated")
-					time.Sleep(100 * time.Millisecond)
-					panic("Circuit breaker activated due to too many reconnection attempts")
+					log.Println("Too many reconnection attempts, terminating process for container restart")
+					// Signal for clean shutdown instead of panic
+					os.Exit(1) // Non-zero exit code signals error to Docker
 				}
 
 				fmt.Printf("Heartbeat timeout detected, time since last heartbeat: %s\n", time.Since(c.lastHeartbeat))

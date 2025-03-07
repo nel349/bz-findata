@@ -44,8 +44,8 @@ Content-Type: application/json
 
 {
     "schedule": "*/10 * * * * *",
-    "hours": 240,
-    "limit": 50
+    "hours": 240, // 10 days -> Represents the number of hours of data to be fetched
+    "limit": 50 // Represents the number of orders to be fetched
 }
 
 ### Stop a task

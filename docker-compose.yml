@@ -107,6 +107,19 @@ services:
     ports:
       - "8091:8091"
 
+  liquidator_app:
+    image: liquidator-app
+    build:
+      context: .
+      dockerfile: cmd/liquidator/Dockerfile
+    # depends_on:
+    #   mysql:
+    #     condition: service_healthy
+    networks:
+      - local
+    env_file:
+      - env.list
+
 networks:
   local:
     driver: bridge

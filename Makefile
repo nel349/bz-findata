@@ -23,6 +23,9 @@ build-analysis: build-base ## Build only analysis app
 build-dex: build-base ## Build only dex app
 	docker build --platform linux/amd64 -t dex-app -f cmd/dex/Dockerfile .
 
+build-liquidator: build-base ## Build only liquidator app
+	docker build --platform linux/amd64 -t liquidator-app -f cmd/liquidator/Dockerfile .
+
 # Docker commands
 docker-compose-up: ## Run all services
 	docker compose up
@@ -38,6 +41,10 @@ analysis-up: build-analysis ## Run only analysis app
 dex-up: build-dex ## Run only dex app
 	@echo "Running dex app and mysql services..."
 	docker compose up dex_app mysql
+
+liquidator-up: build-liquidator ## Run only liquidator app
+	@echo "Running liquidator app"
+	docker compose up liquidator_app
 
 docker-compose-down: ## Stop all services
 	docker compose down

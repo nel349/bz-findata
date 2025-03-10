@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"os"
 
 	// "math/big"
 	"strings"
@@ -34,7 +35,7 @@ const poolAddress = "0x794a61358D6845594F94dc1DB02A252b5b4814aD"
 func main() {
 	log.Println("Starting liquidator service")
 
-	client, err := ethclient.Dial("https://arb1.arbitrum.io/rpc")
+	client, err := ethclient.Dial(os.Getenv("ARBITRUM_RPC_URL"))
 	if err != nil {
 		log.Fatalf("Failed to connect to the Arbitrum network: %v", err)
 	}
@@ -236,11 +237,13 @@ func monitorLiquidatablePositions(client *ethclient.Client) error {
 			// 1.25 × 10^18 Less than 1.25
 			// riskThreshold := new(big.Int).Mul(big.NewInt(125), new(big.Int).Exp(big.NewInt(10), big.NewInt(16), nil))
 
+			// Less than 1.07
+			// liquidationThreshold107 := new(big.Int).Mul(big.NewInt(107), new(big.Int).Exp(big.NewInt(10), big.NewInt(16), nil))
 			if userData.HealthFactor.Cmp(one) < 0 {
 				// Convert health factor to human-readable form (division by 10^18)
 				healthFactorFloat := new(big.Float).Quo(
 					new(big.Float).SetInt(userData.HealthFactor),
-					new(big.Float).SetInt(one),
+					new(big.Float).SetInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)),
 				)
 
 				log.Printf("LIQUIDATABLE: User %s has health factor %s",
@@ -248,9 +251,20 @@ func monitorLiquidatablePositions(client *ethclient.Client) error {
 					healthFactorFloat.Text('f', 6),
 				)
 
+				// display debt base in regular format	
+				totalDebtBaseStr:= new(big.Float).Quo(
+					new(big.Float).SetInt(userData.TotalDebtBase),
+					new(big.Float).SetInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(8), nil)),
+				)
+
+				userCollateralBaseStr:= new(big.Float).Quo(
+					new(big.Float).SetInt(userData.TotalCollateralBase),
+					new(big.Float).SetInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(8), nil)),
+				)
+
 				// Lets print the user debt base and collateral base
-				log.Printf("User debt base: %s", userData.TotalDebtBase.String())
-				log.Printf("User collateral base: %s", userData.TotalCollateralBase.String())
+				log.Printf("User debt base: %s", totalDebtBaseStr.Text('f', 2))
+				log.Printf("User collateral base: %s", userCollateralBaseStr.Text('f', 2))
 
 				// Here you would implement your liquidation logic
 			}

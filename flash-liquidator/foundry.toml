@@ -6,5 +6,6 @@ remappings = [
     '@aave/core-v3/=lib/aave-v3-core/',
     '@openzeppelin/=lib/openzeppelin-contracts/'
 ]
+fs_permissions = [{ access = "read", path = "./.env" }]
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

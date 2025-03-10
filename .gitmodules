@@ -1,0 +1,3 @@
+[submodule "flash-liquidator/lib/forge-std"]
+	path = flash-liquidator/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std

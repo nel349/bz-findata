@@ -29,7 +29,7 @@ contract FlashLiquidatorTest is Test {
     // Tokens we'll work with
     address _usdc = 0xaf88d065e77c8cC2239327C5EDb3A432268e5831; // USDC on Arbitrum
     address _weth = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1; // WETH on Arbitrum
-
+    address _lusd = 0x93b346b6BC2548dA6A1E7d98E9a421B42541425b;
 
     // Test user with unhealthy position
     address public testUser = address(0x436288b1dA64676E57e8Ef2555E448d9470bB9B1);
@@ -203,14 +203,19 @@ contract FlashLiquidatorTest is Test {
         // and possibly for any required approvals or interactions
         vm.deal(address(liquidator), 1 ether);  // Provide some ETH for gas
         
-        // We'll try to liquidate up to 50% of the debt (Aave's max liquidation close factor)
-        uint256 debtToCover = maxDebt / 2;
+        // We'll liquidate the maximum allowed percentage (50%)
+        // This maximizes our profit potential from the liquidation
+        uint256 debtToCover = (maxDebt * 50) / 100;  // 50% of debt
         
-        console.log("Attempting to liquidate:");
-        console.log("User:", testUser);
-        console.log("Debt asset:", debtAsset);
-        console.log("Debt to cover:", debtToCover);
-        console.log("Collateral asset:", collateralAsset);
+        console.log("Executing flash loan for liquidation:");
+        console.log("- User to liquidate:", testUser);
+        console.log("- Debt asset:", debtAsset);
+        console.log("- Debt amount:", maxDebt);
+        console.log("- Debt to cover ( 50 %):", debtToCover);
+        console.log("- Collateral asset:", collateralAsset);
+        
+        // Since we're on mainnet, we don't need to fund the contract with tokens
+        // The flash loan will provide the necessary tokens
         
         // Record logs for event analysis
         vm.recordLogs();
@@ -219,12 +224,11 @@ contract FlashLiquidatorTest is Test {
         // which will trigger the flash loan and then execute liquidation in the callback
         liquidator.executeFlashLoan(
             debtAsset,
-            debtToCover,  // Use half the debt as a safer amount
+            debtToCover,
             collateralAsset,
-            testUser
+            testUser,
+            50  // Use 50% of debt to maximize profit
         );
-
-        console.log("Flash loan executed");
         
         // Get liquidation event logs
         Vm.Log[] memory entries = vm.getRecordedLogs();
@@ -286,11 +290,14 @@ contract FlashLiquidatorTest is Test {
         vm.prank(address(this));
         liquidator.rescueTokens(collateralAsset);
     }
-
-
-
-
-    // Helper function to log financial position details
+    
+    /**
+     * @dev Helper function to log financial position details
+     * @param user The address of the user
+     * @param healthFactor The health factor of the user's position
+     * @param totalCollateralBase The total collateral in base units
+     * @param totalDebtBase The total debt in base units
+     */
     function _logPositionDetails(
         address user,
         uint256 healthFactor,

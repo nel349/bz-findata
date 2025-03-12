@@ -21,37 +21,107 @@ contract FlashLiquidatorTest is Test {
     );
     
     FlashLiquidator public liquidator;
-    address public constant AAVE_ADDRESS_PROVIDER = 0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb; // Arbitrum
-    address public constant UNISWAP_ROUTER = 0xE592427A0AEce92De3Edee1F18E0157C05861564; // Uniswap v3 Router on Arbitrum
-    IPool public constant POOL = IPool(0x794a61358D6845594F94dc1DB02A252b5b4814aD); // Aave V3 Pool on Arbitrum
-    AaveProtocolDataProvider public constant DATA_PROVIDER = AaveProtocolDataProvider(0x69FA688f1Dc47d4B5d8029D5a35FB7a548310654);
+    
+    // Mainnet Arbitrum addresses
+    address public constant MAINNET_AAVE_ADDRESS_PROVIDER = 0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb;
+    address public constant MAINNET_UNISWAP_ROUTER = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
+    IPool public constant MAINNET_POOL = IPool(0x794a61358D6845594F94dc1DB02A252b5b4814aD);
+    AaveProtocolDataProvider public constant MAINNET_DATA_PROVIDER = AaveProtocolDataProvider(0x69FA688f1Dc47d4B5d8029D5a35FB7a548310654);
+    
+    // Testnet (Arbitrum Goerli) addresses
+    address public constant TESTNET_AAVE_ADDRESS_PROVIDER = 0xf8aa90E66B8BaE13f2E4aDe6104ABAB8EeDebBBe;
+    address public constant TESTNET_UNISWAP_ROUTER = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
+    IPool public constant TESTNET_POOL = IPool(0x8472e931d3d005Ed3113C2019343BfE242E5dA89);
+    AaveProtocolDataProvider public constant TESTNET_DATA_PROVIDER = AaveProtocolDataProvider(0x84b7C502e1821b880AFf7c528748CDEfe2e7f5a8);
 
-    // Tokens we'll work with
-    address _usdc = 0xaf88d065e77c8cC2239327C5EDb3A432268e5831; // USDC on Arbitrum
-    address _weth = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1; // WETH on Arbitrum
-    address _lusd = 0x93b346b6BC2548dA6A1E7d98E9a421B42541425b;
+    // Dynamic references for the current network
+    address public AAVE_ADDRESS_PROVIDER;
+    address public UNISWAP_ROUTER;
+    IPool public POOL;
+    AaveProtocolDataProvider public DATA_PROVIDER;
+
+    // Network selection flag
+    bool public isMainnet;
+
+    // Mainnet tokens 
+    address public MAINNET_USDC = 0xaf88d065e77c8cC2239327C5EDb3A432268e5831;
+    address public MAINNET_WETH = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
+    address public MAINNET_LUSD = 0x93b346b6BC2548dA6A1E7d98E9a421B42541425b;
+
+    // Testnet tokens (Arbitrum Goerli)
+    address public TESTNET_USDC = 0x3D28771f2dfE34f57E1Db4e0dEA05d59f9FA92aE;
+    address public TESTNET_WETH = 0xD513c4e3c0A45499cb8ad80bD4A4E887e38528aB;
+    
+    // Dynamic token references
+    address public _usdc;
+    address public _weth;
 
     // Test user with unhealthy position
-    address public testUser = address(0x436288b1dA64676E57e8Ef2555E448d9470bB9B1);
-    // address public debtAsset = address(0x2);
-    address public collateralAsset = _weth;
+    address public testUser = address(0x436288b1dA64676E57e8Ef2555E448d9470bB9B1); // Example address - update with your target
+    address public collateralAsset;
     
-    // Fork Arbitrum mainnet
+    // Fork settings
     function setUp() public {
-        // Use vm.envString to get RPC URL from environment variables
-        string memory arbitrumRpcUrl = vm.envOr("ARBITRUM_RPC_URL", string(""));
+        // Determine which network to use
+        string memory network = vm.envOr("AAVE_NETWORK", string("mainnet")); // Default to mainnet fork
         
-        // If no RPC URL is provided, skip the test
-        if (bytes(arbitrumRpcUrl).length == 0) {
-            console.log("No ARBITRUM_RPC_URL environment variable found. Skipping test.");
-            return;
+        if (keccak256(abi.encodePacked(network)) == keccak256(abi.encodePacked("mainnet"))) {
+            // Use mainnet settings
+            isMainnet = true;
+            AAVE_ADDRESS_PROVIDER = MAINNET_AAVE_ADDRESS_PROVIDER;
+            UNISWAP_ROUTER = MAINNET_UNISWAP_ROUTER;
+            POOL = MAINNET_POOL;
+            DATA_PROVIDER = MAINNET_DATA_PROVIDER;
+            _usdc = MAINNET_USDC;
+            _weth = MAINNET_WETH;
+            
+            // Fork Arbitrum mainnet
+            string memory arbitrumRpcUrl = vm.envOr("ARBITRUM_RPC_URL", string(""));
+            
+            // If no RPC URL is provided, skip the test
+            if (bytes(arbitrumRpcUrl).length == 0) {
+                console.log("No ARBITRUM_RPC_URL environment variable found. Skipping test.");
+                return;
+            }
+            
+            vm.createSelectFork(arbitrumRpcUrl);
+            console.log("Running tests on Arbitrum mainnet fork");
+        } else {
+            // Use testnet settings
+            isMainnet = false;
+            AAVE_ADDRESS_PROVIDER = TESTNET_AAVE_ADDRESS_PROVIDER;
+            UNISWAP_ROUTER = TESTNET_UNISWAP_ROUTER;
+            POOL = TESTNET_POOL;
+            DATA_PROVIDER = TESTNET_DATA_PROVIDER;
+            _usdc = TESTNET_USDC;
+            _weth = TESTNET_WETH;
+            
+            // Fork Arbitrum testnet (Goerli)
+            string memory arbitrumGoerliRpcUrl = vm.envOr("ARBITRUM_GOERLI_RPC_URL", string(""));
+            
+            // If no RPC URL is provided, skip the test
+            if (bytes(arbitrumGoerliRpcUrl).length == 0) {
+                console.log("No ARBITRUM_GOERLI_RPC_URL environment variable found. Skipping test.");
+                return;
+            }
+            
+            vm.createSelectFork(arbitrumGoerliRpcUrl);
+            console.log("Running tests on Arbitrum testnet fork");
+            
+            // For testnet, we may need to specify a testUser or create one
+            string memory testUserInput = vm.envOr("TEST_USER", string(""));
+            if (bytes(testUserInput).length > 0) {
+                // Parse address from environment variable
+                testUser = vm.parseAddress(testUserInput);
+                console.log("Using test user from environment:", testUser);
+            } else {
+                console.log("Using default test user:", testUser);
+            }
         }
-        
-        // Fork Arbitrum at a more recent block or use the 'latest' keyword
-        vm.createSelectFork(arbitrumRpcUrl);
         
         // Deploy the liquidator
         liquidator = new FlashLiquidator(AAVE_ADDRESS_PROVIDER, UNISWAP_ROUTER);
+        console.log("Liquidator deployed at:", address(liquidator));
     }
     
     // Test successful deployment
@@ -131,7 +201,7 @@ contract FlashLiquidatorTest is Test {
         // Variables to track the debt and collateral assets
         address debtAsset;
         uint256 maxDebt = 0;
-        address collateralAsset;
+        address _localCollateralAsset;
         uint256 maxCollateral = 0;
         
         console.log("Checking reserves for user:", testUser);
@@ -171,13 +241,13 @@ contract FlashLiquidatorTest is Test {
             // Track the asset with the highest collateral
             if (aTokenBalance > maxCollateral) {
                     maxCollateral = aTokenBalance;
-                    collateralAsset = asset;
+                    _localCollateralAsset = asset;
             }
         }
 
         console.log("Found debt asset:", debtAsset);
         console.log("Debt amount:", maxDebt);
-        console.log("Found collateral asset:", collateralAsset);
+        console.log("Found collateral asset:", _localCollateralAsset);
         console.log("Collateral amount:", maxCollateral);
 
 
@@ -185,11 +255,11 @@ contract FlashLiquidatorTest is Test {
         
         // Ensure we found both assets
         require(debtAsset != address(0), "No debt asset found");
-        require(collateralAsset != address(0), "No collateral asset found");
+        require(_localCollateralAsset != address(0), "No collateral asset found");
         
         // // Make sure we have the actual ERC20 token instances
         // IERC20 debtToken = IERC20(debtAsset);
-        IERC20 collateralToken = IERC20(collateralAsset);
+        IERC20 collateralToken = IERC20(_localCollateralAsset);
         
         // Record balances before liquidation
         uint256 liquidatorCollateralBefore = collateralToken.balanceOf(address(liquidator));
@@ -212,7 +282,7 @@ contract FlashLiquidatorTest is Test {
         console.log("- Debt asset:", debtAsset);
         console.log("- Debt amount:", maxDebt);
         console.log("- Debt to cover ( 50 %):", debtToCover);
-        console.log("- Collateral asset:", collateralAsset);
+        console.log("- Collateral asset:", _localCollateralAsset);
         
         // Since we're on mainnet, we don't need to fund the contract with tokens
         // The flash loan will provide the necessary tokens
@@ -225,7 +295,7 @@ contract FlashLiquidatorTest is Test {
         liquidator.executeFlashLoan(
             debtAsset,
             debtToCover,
-            collateralAsset,
+            _localCollateralAsset,
             testUser,
             50  // Use 50% of debt to maximize profit
         );
@@ -288,7 +358,7 @@ contract FlashLiquidatorTest is Test {
         
         // Optional: withdraw the profits to the test contract
         vm.prank(address(this));
-        liquidator.rescueTokens(collateralAsset);
+        liquidator.rescueTokens(_localCollateralAsset);
     }
     
     /**
